@@ -1,422 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet & Equipment Maintenance Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f6f5; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
-</head>
-<body class="bg-[#f4f6f5] text-slate-800 antialiased h-screen overflow-hidden flex text-xs">
+<script>
+        // ====== LIVE DATABASE CONNECTOR CONFIGURATION ======
+        const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/p428lre6grrmb'; 
 
-    <aside class="w-60 bg-[#18251f] flex flex-col justify-between flex-shrink-0 border-r border-emerald-950/20 shadow-xl z-20 text-slate-300">
-        <div>
-            <div class="p-4 flex items-center space-x-3 border-b border-emerald-900/30">
-                <div class="w-8 h-8 rounded-lg bg-[#23342b] text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                    <i class="fa-solid fa-gears text-[12px] text-[#ffcc00]"></i>
-                </div>
-                <div class="overflow-hidden">
-                    <h2 class="font-bold text-white text-xs tracking-wider truncate leading-tight">MAINTENANCE</h2>
-                    <p class="text-[10px] text-emerald-400 font-semibold tracking-wide truncate">TSGP OPERATIONS</p>
-                </div>
-            </div>
-
-            <div class="px-3 pt-4">
-                <div class="relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-emerald-600 text-[10px]"></i>
-                    <input type="text" placeholder="Search menu..." class="w-full bg-[#23342b] text-slate-100 placeholder-emerald-600 text-[11px] rounded-lg pl-8 pr-3 py-1.5 border border-transparent focus:outline-none focus:border-emerald-700 transition-all">
-                </div>
-            </div>
-            
-            <nav class="mt-5 px-2 space-y-1">
-                <div class="px-3 py-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest flex items-center justify-between">
-                    <span>Analysis Engine</span>
-                    <i class="fa-solid fa-chevron-down text-[8px]"></i>
-                </div>
-                
-                <button onclick="switchTab('kpi')" id="btn-kpi" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm">
-                    <div class="flex items-center">
-                        <i class="fa-solid fa-chart-line w-4 mr-2.5 text-current text-sm"></i>
-                        <span>Compliance Overview</span>
-                    </div>
-                    <span class="bg-slate-950 text-[#ffcc00] font-bold text-[8px] px-1.5 py-0.5 rounded-md uppercase tracking-wider">Live</span>
-                </button>
-
-                <button onclick="switchTab('input-form')" id="btn-input-form" class="w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150">
-                    <i class="fa-solid fa-circle-plus w-4 mr-2.5 text-sm text-emerald-400"></i>
-                    Data Input Matrix
-                </button>
-                
-                <div class="pt-5 pb-1 px-3 text-[9px] font-bold text-emerald-600 uppercase tracking-widest flex items-center justify-between">
-                    <span>Dynamic Weekly Logs</span>
-                    <i class="fa-solid fa-chevron-down text-[8px]"></i>
-                </div>
-                
-                <div class="px-2 pt-1">
-                    <select id="sidebar-week-select" onchange="if(this.value) switchTab('week-' + this.value)" class="w-full rounded-lg border border-emerald-800/40 bg-[#23342b] text-slate-200 text-[11px] font-medium px-2.5 py-2 focus:outline-none focus:border-emerald-600 shadow-inner cursor-pointer transition-all duration-150">
-                    </select>
-                </div>
-            </nav>
-        </div>
-        
-        <div class="p-3.5 m-3 bg-[#23342b] rounded-xl border border-emerald-800/20 text-center shadow-md">
-            <p class="font-bold text-slate-200 text-[10px] tracking-wide">Safety Compliance Logs</p>
-            <p class="text-[9px] text-emerald-500 mt-0.5 mb-2.5">Apply active 2-step compliance loop checks.</p>
-            <button onclick="switchTab('input-form')" class="w-full bg-[#ffcc00] hover:bg-[#e6b800] text-slate-950 text-[10px] font-bold py-1.5 px-2 rounded-lg transition-all shadow-sm">
-                Enable 2-step Verify
-            </button>
-        </div>
-    </aside>
-
-    <div class="flex-1 flex flex-col overflow-hidden">
-        
-        <header class="h-14 bg-white border-b border-slate-200/80 flex items-center justify-between px-6 flex-shrink-0 z-10 shadow-sm">
-            <div class="flex items-center space-x-2.5 text-slate-500 font-medium">
-                <span class="hover:text-slate-800 cursor-pointer transition">Operational Matrix</span>
-                <i class="fa-solid fa-chevron-right text-[8px] text-slate-400"></i>
-                <h1 id="view-header-title" class="text-xs font-bold text-slate-900 tracking-tight">Compliance Overview Metrics</h1>
-                <span id="view-header-badge" class="px-2 py-0.5 text-[9px] font-bold bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">System Connected</span>
-            </div>
-            
-            <div class="flex items-center space-x-4">
-                <div class="text-right hidden sm:block">
-                    <p id="header-week-indicator" class="text-[11px] font-semibold text-slate-400 tracking-tight">Multi-Week Matrix View</p>
-                </div>
-                <div class="h-4 w-[1px] bg-slate-200"></div>
-                <button onclick="switchTab('input-form')" class="bg-[#ffcc00] hover:bg-[#e6b800] text-slate-950 font-bold text-[11px] px-4 py-2 rounded-lg shadow-sm flex items-center space-x-1.5 transition-all">
-                    <i class="fa-solid fa-plus text-[10px]"></i>
-                    <span>New Entry / Task</span>
-                </button>
-            </div>
-        </header>
-
-        <main class="flex-1 overflow-y-auto p-6 space-y-6">
-
-            <div id="panel-kpi" class="space-y-6">
-                <div class="flex items-center justify-between bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Historical Scope Scope Filter</span>
-                    </div>
-                    <div>
-                        <select id="kpi-week-select" onchange="renderKPITable(this.value)" class="rounded-lg border border-slate-200 text-xs px-3 py-1.5 bg-white font-semibold text-slate-700 focus:outline-none focus:border-slate-400 shadow-sm cursor-pointer"></select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-start justify-between relative overflow-hidden">
-                        <div class="space-y-1">
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">Total Tracked</p>
-                            <h3 id="stat-total" class="text-2xl font-bold text-slate-900 tracking-tight">0</h3>
-                            <p class="text-[9px] font-medium text-slate-400">Planned sequences</p>
-                        </div>
-                        <div class="p-2 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg text-xs"><i class="fa-solid fa-list-check"></i></div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-start justify-between relative overflow-hidden">
-                        <div class="space-y-1">
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">On-Schedule</p>
-                            <h3 id="stat-actual" class="text-2xl font-bold text-emerald-600 tracking-tight">0</h3>
-                            <p class="text-[9px] font-medium text-slate-400">Confirmed items done</p>
-                        </div>
-                        <div class="p-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-xs"><i class="fa-solid fa-square-check"></i></div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-start justify-between relative overflow-hidden">
-                        <div class="space-y-1">
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">Compliance Rate</p>
-                            <h3 id="stat-rate" class="text-2xl font-bold text-slate-900 tracking-tight">0%</h3>
-                            <p class="text-[9px] font-medium text-emerald-500 font-semibold">+Active cycle tracking</p>
-                        </div>
-                        <div class="p-2 bg-[#18251f] text-[#ffcc00] rounded-lg text-xs"><i class="fa-solid fa-gauge-high"></i></div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-start justify-between relative overflow-hidden">
-                        <div class="space-y-1">
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">Benchmark Target</p>
-                            <h3 class="text-2xl font-bold text-slate-800 tracking-tight">85.0%</h3>
-                            <p class="text-[9px] font-medium text-rose-500 font-semibold">Required target level</p>
-                        </div>
-                        <div class="p-2 bg-rose-50 text-rose-500 border border-rose-100 rounded-lg text-xs"><i class="fa-solid fa-bullseye"></i></div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl border border-slate-200/80 shadow-[0_4px_16px_rgba(0,0,0,0.02)] overflow-hidden">
-                    <div class="px-5 py-4 border-b border-slate-100 bg-white flex items-center justify-between">
-                        <h4 class="font-bold text-slate-900 text-xs tracking-tight flex items-center">
-                            <i class="fa-solid fa-table-list mr-2 text-slate-400"></i>Planner Output Performance Scorecard
-                        </h4>
-                        <span id="kpi-table-week-indicator" class="text-[10px] font-bold text-slate-500 px-2.5 py-1 bg-slate-50 border border-slate-200/60 rounded-lg">Metrics Data</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/70 text-slate-400 text-[9px] font-bold uppercase tracking-widest border-b border-slate-200/60">
-                                    <th class="py-3 px-6">Planner Assigned</th>
-                                    <th class="py-3 px-6">Scope Sector Responsibility</th>
-                                    <th class="py-3 px-6 text-center">Planned Tasks</th>
-                                    <th class="py-3 px-6 text-center">Actual Done</th>
-                                    <th class="py-3 px-6">Compliance Progress</th>
-                                </tr>
-                            </thead>
-                            <tbody id="kpi-table-body" class="divide-y divide-slate-100 text-[11px] text-slate-600">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="panel-input-form" class="hidden space-y-6 max-w-4xl mx-auto">
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                    <div class="flex items-center space-x-2 text-slate-800 mb-3">
-                        <i class="fa-solid fa-file-csv text-emerald-500 text-sm"></i>
-                        <h3 class="text-xs font-bold">Automated Spreadsheet CSV Importer</h3>
-                    </div>
-                    <div class="border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-xl p-6 text-center bg-slate-50/50 transition cursor-pointer relative">
-                        <input type="file" id="csv-file-input" accept=".csv" onchange="importCSVFile(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-2 block"></i>
-                        <span class="text-xs font-semibold text-slate-700 block">Click or Drag & Drop Week CSV Here</span>
-                        <span class="text-[10px] text-slate-400 block mt-1">Accepts raw spreadsheet rows parsing data loops directly into live system</span>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
-                    <div class="px-5 py-4 bg-[#18251f] text-white flex items-center justify-between">
-                        <h3 class="text-xs font-bold tracking-wide">Manual Planned Maintenance Entry Form</h3>
-                        <i class="fa-solid fa-file-pen text-[#ffcc00]"></i>
-                    </div>
-                    <form id="task-entry-form" onsubmit="handleFormSubmit(event)" class="p-5 space-y-4">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Week Number *</label>
-                                <input type="number" id="form-week" required value="23" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 font-semibold focus:outline-none focus:border-slate-400 bg-slate-50">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Equipment No *</label>
-                                <input type="text" id="form-equip" required placeholder="CR-08" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-400">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Assigned Planner *</label>
-                                <select id="form-planner" required class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 bg-white focus:outline-none focus:border-slate-400">
-                                    <option value="PHILIP">PHILIP (PMS)</option>
-                                    <option value="LEO">LEO (CM)</option>
-                                    <option value="VINCENT">VINCENT (CM)</option>
-                                    <option value="GLENBERTH">GLENBERTH (CM)</option>
-                                    <option value="ROICE">ROICE (CM)</option>
-                                    <option value="DIONAH">DIONAH (SV)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Type *</label>
-                                <select id="form-type" required class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 bg-white focus:outline-none focus:border-slate-400">
-                                    <option value="PM">PM</option>
-                                    <option value="CM">CM</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Activity Description *</label>
-                            <textarea id="form-activity" required rows="2" placeholder="Describe component maintenance schedule parameters..." class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-400"></textarea>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Target Date</label><input type="text" id="form-date" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Duration</label><input type="text" id="form-duration" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Location</label><input type="text" id="form-loc" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Parts Status</label><input type="text" id="form-info" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Current Status</label>
-                                <select id="form-status" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 bg-white focus:outline-none focus:border-slate-400 font-semibold">
-                                    <option value="FOR SCHEDULE">FOR SCHEDULE</option>
-                                    <option value="ONGOING">ONGOING</option>
-                                    <option value="NOT DONE">NOT DONE</option>
-                                    <option value="DONE">DONE</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2">
-                            <button type="button" onclick="switchTab('kpi')" class="px-4 py-2 font-semibold rounded-lg text-slate-500 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
-                            <button type="submit" class="px-5 py-2 font-bold rounded-lg text-white bg-slate-900 hover:bg-slate-800 shadow transition flex items-center">
-                                <i class="fa-solid fa-floppy-disk mr-2 text-[10px]"></i> Save Row
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div id="panel-schedules" class="hidden space-y-4">
-                <div class="bg-emerald-50 border border-emerald-200/60 rounded-xl p-3 flex items-center space-x-2.5 text-[11px] text-emerald-900">
-                    <i class="fa-solid fa-circle-info text-emerald-600 text-xs"></i>
-                    <span>Status interaction rule active: Click directly on status badge pills (e.g. <strong>DONE</strong>) to quick-toggle completion loops instantly.</span>
-                </div>
-
-                <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
-                    <div class="flex flex-wrap gap-2 items-center flex-1">
-                        <div>
-                            <select id="schedule-week-select" onchange="switchTab('week-' + this.value)" class="rounded-lg border border-slate-200 px-3 py-1.5 bg-slate-50 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-400 shadow-sm cursor-pointer">
-                            </select>
-                        </div>
-                        
-                        <div class="relative w-48">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-[10px]"></i>
-                            <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Search Equipment..." class="w-full rounded-lg border border-slate-200 pl-8 pr-2 py-1.5 text-xs bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400">
-                        </div>
-                        
-                        <div><select id="filter-planner" onchange="applyFilters()" class="rounded-lg border border-slate-200 px-2.5 py-1.5 bg-white text-xs text-slate-600 font-medium focus:outline-none"><option value="ALL">All Planners</option><option value="PHILIP">Philip</option><option value="LEO">Leo</option><option value="VINCENT">Vincent</option><option value="GLENBERTH">Glenberth</option><option value="ROICE">Roice</option><option value="DIONAH">Dionah</option></select></div>
-                        <div><select id="filter-type" onchange="applyFilters()" class="rounded-lg border border-slate-200 px-2.5 py-1.5 bg-white text-xs text-slate-600 font-medium focus:outline-none"><option value="ALL">All Types</option><option value="PM">PM</option><option value="CM">CM</option></select></div>
-                        <div><select id="filter-status" onchange="applyFilters()" class="rounded-lg border border-slate-200 px-2.5 py-1.5 bg-white text-xs text-slate-600 font-medium focus:outline-none"><option value="ALL">All Status</option><option value="DONE">Done Only</option><option value="NOT DONE">Not Done Only</option></select></div>
-                    </div>
-                    
-                    <div>
-                        <button onclick="carryOverNotDone()" class="bg-[#18251f] hover:bg-[#23342b] text-white font-bold px-3.5 py-1.5 rounded-lg shadow-sm text-xs flex items-center space-x-1.5 transition">
-                            <i class="fa-solid fa-forward-fast text-[10px] text-[#ffcc00]"></i>
-                            <span>Carry Over "Not Done" Tasks</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/80 text-slate-400 text-[9px] font-bold uppercase tracking-widest border-b border-slate-200">
-                                    <th class="py-3 px-3 text-center w-8">No.</th>
-                                    <th class="py-3 px-3">Equipment</th>
-                                    <th class="py-3 px-3">Planner</th>
-                                    <th class="py-3 px-2 text-center">Type</th>
-                                    <th class="py-3 px-4 max-w-xs">Activity Task Line Description</th>
-                                    <th class="py-3 px-3">Planned Date</th>
-                                    <th class="py-3 px-2">Duration</th>
-                                    <th class="py-3 px-3">Parts Info</th>
-                                    <th class="py-3 px-3">Location</th>
-                                    <th class="py-3 px-2 text-center">Status</th>
-                                    <th class="py-3 px-2 text-center w-16">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="schedule-table-body" class="divide-y divide-slate-100 text-[11px] text-slate-600 bg-white">
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="table-empty-state" class="hidden p-8 text-center text-slate-400 bg-slate-50/50 font-medium">No schedule rows matched standard filter criteria inputs.</div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-150">
-            <div class="px-4 py-3 bg-[#18251f] text-white flex items-center justify-between">
-                <h3 class="text-xs font-bold flex items-center"><i class="fa-solid fa-pen-to-square text-[#ffcc00] mr-2"></i> Edit Maintenance Record</h3>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-sm"></i></button>
-            </div>
-            <form id="edit-task-form" onsubmit="handleEditFormSubmit(event)" class="p-4 space-y-3.5">
-                <input type="hidden" id="edit-week">
-                <input type="hidden" id="edit-no">
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Equipment No *</label>
-                        <input type="text" id="edit-equip" required class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 font-bold text-slate-800 focus:outline-none focus:border-slate-400">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Type *</label>
-                        <select id="edit-type" required class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 bg-white font-medium text-slate-800 focus:outline-none focus:border-slate-400">
-                            <option value="PM">PM</option>
-                            <option value="CM">CM</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Assigned Planner *</label>
-                        <select id="edit-planner" required class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 bg-white text-slate-800 focus:outline-none focus:border-slate-400">
-                            <option value="PHILIP">PHILIP (PMS)</option>
-                            <option value="LEO">LEO (CM)</option>
-                            <option value="VINCENT">VINCENT (CM)</option>
-                            <option value="GLENBERTH">GLENBERTH (CM)</option>
-                            <option value="ROICE">ROICE (CM)</option>
-                            <option value="DIONAH">DIONAH (SV)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Current Status</label>
-                        <select id="edit-status" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 bg-white font-bold text-slate-800 focus:outline-none focus:border-slate-400">
-                            <option value="FOR SCHEDULE">FOR SCHEDULE</option>
-                            <option value="ONGOING">ONGOING</option>
-                            <option value="NOT DONE">NOT DONE</option>
-                            <option value="DONE">DONE</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Activity Description *</label>
-                    <textarea id="edit-activity" required rows="2" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-slate-400"></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Planned Date</label><input type="text" id="edit-date" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                    <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Duration</label><input type="text" id="edit-duration" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Location</label><input type="text" id="edit-loc" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                    <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Parts Status</label><input type="text" id="edit-info" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-slate-400"></div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2">
-                    <button type="button" onclick="closeEditModal()" class="px-3 py-1.5 font-medium rounded-lg text-slate-500 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-1.5 font-bold rounded-lg text-slate-950 bg-[#ffcc00] hover:bg-[#e6b800] shadow transition flex items-center"><i class="fa-solid fa-square-check mr-1.5 text-[10px]"></i> Update Record</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
         let activeTab = 'kpi';
         let currentlySelectedWeek = '23';
+        let database = { schedules: {}, kpi: {} };
 
-        let database = JSON.parse(localStorage.getItem('maintex_db')) || {
-            schedules: {
-                "22": [
-                    { no: 1, equip: "BT-56", planner: "VINCENT", type: "CM", activity: "INSTALL KNUCKLE OIL SEAL AND BEARING", date: "2026-06-03", duration: "2 DAYS", info: "DELIVERED MAKILOS", loc: "REGION XIII", status: "DONE" },
-                    { no: 2, equip: "TM-79", planner: "VINCENT", type: "CM", activity: "REPLACEMENT OF V-TORQUE", date: "2026-06-04", duration: "2 HOURS", info: "ON STOCK", loc: "REGION XIII", status: "DONE" }
-                ],
-                "23": [
-                    { no: 1, equip: "CR-08", planner: "PHILIP", type: "PM", activity: "PM 1000 - CENTER BOLT SHOCK ABSORBER", date: "JUNE, 6-11, 2026", duration: "5 HOURS", info: "WAITING FOR INSTALL", loc: "STA. ANA COASTAL", status: "NOT DONE" },
-                    { no: 2, equip: "TM-120", planner: "PHILIP", type: "PM", activity: "PM 10000 SERVICE BLOCK RUN", date: "JUNE, 6-11, 2026", duration: "5 HOURS", info: "WAITING FOR INSTALL", loc: "STA. ANA COASTAL", status: "NOT DONE" },
-                    { no: 3, equip: "BH-66", planner: "LEO", type: "CM", activity: "Replacement of Alternator assembly", date: "2026-06-08", duration: "2 HOURS", info: "ARRIVED MATERIAL", loc: "GEM WORKSHOP", status: "DONE" }
-                ]
-            },
-            kpi: {
-                "22": [
-                    { name: "PHILIP", type: "PMS", planned: 0, actual: 0, rate: 0, area: "Preventive Scope" },
-                    { name: "LEO", type: "CM", planned: 0, actual: 0, rate: 0, area: "Workshop Yard" },
-                    { name: "VINCENT", type: "CM", planned: 2, actual: 2, rate: 100, area: "Field Support" }
-                ],
-                "23": [
-                    { name: "PHILIP", type: "PMS", planned: 49, actual: 27, rate: 55.1, area: "Preventive Scope" },
-                    { name: "LEO", type: "CM (GEM, LOS AMIGOS)", planned: 19, actual: 16, rate: 84.2, area: "Workshop Yard" },
-                    { name: "VINCENT", type: "CM (REGION XIII)", planned: 15, actual: 11, rate: 73.3, area: "Field Support" },
-                    { name: "GLENBERTH", type: "CM (REGION XI)", planned: 6, actual: 5, rate: 83.3, area: "Regional Infrastructure" },
-                    { name: "ROICE", type: "CM (SAMAL)", planned: 4, actual: 0, rate: 0.0, area: "Samal Field & Heavy Cranes" },
-                    { name: "DIONAH", type: "SV, TYRES", planned: 9, actual: 3, rate: 33.3, area: "Tyre Logs" }
-                ],
-                "24": [
-                    { name: "PHILIP", type: "PMS", planned: 58, actual: 25, rate: 43.1, area: "Preventive Scope" },
-                    { name: "LEO", type: "CM", planned: 21, actual: 13, rate: 61.9, area: "Workshop Yard" },
-                    { name: "VINCENT", type: "CM", planned: 9, actual: 7, rate: 77.7, area: "Field Support" }
-                ]
-            }
-        };
+        // Helper function to dynamically map planner areas
+        function getPlannerArea(pName) {
+            if (pName === "PHILIP") return "Preventive Scope";
+            if (pName === "LEO") return "Workshop Yard";
+            if (pName === "VINCENT") return "Field Support";
+            if (pName === "GLENBERTH") return "Regional Infrastructure";
+            if (pName === "ROICE") return "Samal Field & Heavy Cranes";
+            return "Tyre Logs";
+        }
 
+        // Helper to format date ranges for weeks
         function getWeekDateRange(weekStr) {
             const weekNum = parseInt(weekStr);
             if (isNaN(weekNum)) return "";
@@ -430,39 +30,173 @@
             return `(${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)})`;
         }
 
-       function commitToStorage() {
-    // Instead of local storage, send the data to your Google Sheet API
-    fetch('https://sheetdb.io/api/v1/YOUR_API_ID_HERE', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            data: [
-                {
-                    "Week": document.getElementById('form-week').value,
-                    "Equipment No": document.getElementById('form-equip').value,
-                    "Assigned Planner": document.getElementById('form-planner').value,
-                    "Type": document.getElementById('form-type').value,
-                    "Activity Description": document.getElementById('form-activity').value,
-                    "Target Date": document.getElementById('form-date').value,
-                    "Duration": document.getElementById('form-duration').value,
-                    "Parts Status": document.getElementById('form-parts').value,
-                    "Location": document.getElementById('form-location').value,
-                    "Current Status": "NOT DONE"
+        // 1. Fetch live records from Google Sheets instead of reading local storage
+        function loadDatabaseFromCloud() {
+            fetch(SHEETDB_API_URL)
+            .then(response => response.json())
+            .then(data => {
+                // Reset local memory structures
+                database.schedules = {};
+                database.kpi = {};
+
+                if (!Array.isArray(data)) return;
+
+                // Group spreadsheet rows into their matching week plans
+                data.forEach((row) => {
+                    const w = row["Week"] ? row["Week"].toString().trim() : "23";
+                    if (!database.schedules[w]) database.schedules[w] = [];
+                    
+                    database.schedules[w].push({
+                        no: database.schedules[w].length + 1,
+                        equip: row["Equipment No"] || "",
+                        planner: row["Assigned Planner"] || "",
+                        type: row["Type"] || "CM",
+                        activity: row["Activity Description"] || "",
+                        date: row["Target Date"] || "",
+                        duration: row["Duration"] || "",
+                        info: row["Parts Status"] || "",
+                        loc: row["Location"] || "",
+                        status: row["Current Status"] || "FOR SCHEDULE"
+                    });
+                });
+
+                // Regenerate scorecard metrics for all found weeks
+                const allWeeks = Object.keys(database.schedules);
+                if (allWeeks.length === 0) {
+                    // Fallback to defaults if sheet is empty
+                    allWeeks.push("22", "23", "24");
+                    database.schedules["23"] = [];
                 }
-            ]
-        })
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        alert("Success! The record was saved directly into the Google Sheet.");
-        location.reload(); // Refresh the screen to display the update
-    });
-}
+                
+                allWeeks.forEach(w => recalculateKPIsForWeek(w));
+
+                // Refresh interface items
+                syncInterfaceControls();
+                
+                if (activeTab === 'kpi') {
+                    renderKPITable(currentlySelectedWeek);
+                } else if (activeTab.startsWith('week-')) {
+                    applyFilters();
+                }
+            })
+            .catch(err => console.error("Cloud synchronization engine error:", err));
         }
 
+        // 2. Insert Form Entry as a New Row in Google Sheets
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const wNum = document.getElementById('form-week').value.toString().trim();
+            
+            const payload = {
+                "Week": wNum,
+                "Equipment No": document.getElementById('form-equip').value.toUpperCase(),
+                "Assigned Planner": document.getElementById('form-planner').value,
+                "Type": document.getElementById('form-type').value,
+                "Activity Description": document.getElementById('form-activity').value,
+                "Target Date": document.getElementById('form-date').value || "UNSCHEDULED",
+                "Duration": document.getElementById('form-duration').value || "--",
+                "Parts Status": document.getElementById('form-info').value || "NONE",
+                "Location": document.getElementById('form-loc').value || "MAIN HQ",
+                "Current Status": document.getElementById('form-status').value
+            };
+
+            fetch(SHEETDB_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: [payload] })
+            })
+            .then(res => res.json())
+            .then(() => {
+                document.getElementById('task-entry-form').reset();
+                currentlySelectedWeek = wNum;
+                switchTab(`week-${wNum}`);
+                loadDatabaseFromCloud();
+            });
+        }
+
+        // 3. Update Existing Row Values inside Google Sheets using Key Query Conditions
+        function handleEditFormSubmit(event) {
+            event.preventDefault();
+            const weekStr = document.getElementById('edit-week').value;
+            const taskNo = parseInt(document.getElementById('edit-no').value);
+
+            const taskList = database.schedules[weekStr] || [];
+            const item = taskList.find(t => t.no === taskNo);
+            if (!item) return;
+
+            const updatedData = {
+                "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
+                "Type": document.getElementById('edit-type').value,
+                "Assigned Planner": document.getElementById('edit-planner').value,
+                "Current Status": document.getElementById('edit-status').value,
+                "Activity Description": document.getElementById('edit-activity').value,
+                "Target Date": document.getElementById('edit-date').value,
+                "Duration": document.getElementById('edit-duration').value,
+                "Location": document.getElementById('edit-loc').value,
+                "Parts Status": document.getElementById('edit-info').value
+            };
+
+            // Locate matching record matching specific unique constraint values to update
+            fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    condition: { "Equipment No": item.equip, "Activity Description": item.activity },
+                    data: updatedData
+                })
+            })
+            .then(res => res.json())
+            .then(() => {
+                closeEditModal();
+                loadDatabaseFromCloud();
+            });
+        }
+
+        // 4. State Modification Loop for Interactive Status Badges
+        function toggleTaskStatus(weekStr, taskNo) {
+            const taskList = database.schedules[weekStr] || [];
+            const foundTask = taskList.find(t => t.no === taskNo);
+            
+            if (foundTask) {
+                const cur = foundTask.status.trim().toUpperCase();
+                let nextStatus = "DONE";
+                if (cur === "DONE") nextStatus = "NOT DONE";
+                else if (cur === "NOT DONE") nextStatus = "ONGOING";
+                else if (cur === "ONGOING") nextStatus = "FOR SCHEDULE";
+
+                fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        condition: { "Equipment No": foundTask.equip, "Activity Description": foundTask.activity },
+                        data: { "Current Status": nextStatus }
+                    })
+                })
+                .then(res => res.json())
+                .then(() => loadDatabaseFromCloud());
+            }
+        }
+
+        // 5. Remove Target Rows Globally from Spreadsheet Database
+        function deleteTask(weekStr, taskNo) {
+            if (!confirm("Are you sure you want to permanently delete this maintenance record row from Google Drive?")) return;
+
+            const taskList = database.schedules[weekStr] || [];
+            const item = taskList.find(t => t.no === taskNo);
+            if (!item) return;
+
+            fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    condition: { "Equipment No": item.equip, "Activity Description": item.activity }
+                })
+            })
+            .then(res => res.json())
+            .then(() => loadDatabaseFromCloud());
+        }
+
+        // 6. Carry Over "Not Done" Items to the Next Sequence Week Pipeline
         function carryOverNotDone() {
             const currentWeekNum = parseInt(currentlySelectedWeek);
             if (isNaN(currentWeekNum)) return;
@@ -476,127 +210,98 @@
                 return;
             }
             
-            initializeNewWeekIfMissing(nextWeekStr);
-            
-            notDoneTasks.forEach(item => {
+            const payloads = notDoneTasks.map(item => {
                 const priorityPrefix = "[PRIORITY]";
-                const newActivity = item.activity.startsWith(priorityPrefix) ? item.activity : `${priorityPrefix} ${item.activity}`;
-                const nextWeekTasks = database.schedules[nextWeekStr];
-                
-                nextWeekTasks.push({
-                    no: nextWeekTasks.length + 1,
-                    equip: item.equip,
-                    planner: item.planner,
-                    type: item.type,
-                    activity: newActivity,
-                    date: `Carried from W${currentlySelectedWeek}`,
-                    duration: item.duration,
-                    info: item.info,
-                    loc: item.loc,
-                    status: "NOT DONE"
-                });
+                return {
+                    "Week": nextWeekStr,
+                    "Equipment No": item.equip,
+                    "Assigned Planner": item.planner,
+                    "Type": item.type,
+                    "Activity Description": item.activity.startsWith(priorityPrefix) ? item.activity : `${priorityPrefix} ${item.activity}`,
+                    "Target Date": `Carried from W${currentlySelectedWeek}`,
+                    "Duration": item.duration,
+                    "Parts Status": item.info,
+                    "Location": item.loc,
+                    "Current Status": "NOT DONE"
+                };
             });
-            
-            recalculateKPIsForWeek(nextWeekStr);
-            commitToStorage();
-            alert(`Carried over ${notDoneTasks.length} unfinished equipment items into Week ${nextWeekStr} as a high priority!`);
-            
-            currentlySelectedWeek = nextWeekStr;
-            switchTab(`week-${nextWeekStr}`);
+
+            fetch(SHEETDB_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: payloads })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert(`Carried over ${notDoneTasks.length} unfinished items into Week ${nextWeekStr} successfully.`);
+                currentlySelectedWeek = nextWeekStr;
+                switchTab(`week-${nextWeekStr}`);
+                loadDatabaseFromCloud();
+            });
         }
 
-        function toggleTaskStatus(weekStr, taskNo) {
-            const taskList = database.schedules[weekStr] || [];
-            const foundTask = taskList.find(t => t.no === taskNo);
-            
-            if (foundTask) {
-                const cur = foundTask.status.trim().toUpperCase();
-                if (cur === "DONE") foundTask.status = "NOT DONE";
-                else if (cur === "NOT DONE") foundTask.status = "ONGOING";
-                else if (cur === "ONGOING") foundTask.status = "FOR SCHEDULE";
-                else foundTask.status = "DONE";
-                
-                recalculateKPIsForWeek(weekStr);
-                commitToStorage();
-                applyFilters();
-            }
-        }
-
+        // ====== CORE KPI CALCULATOR ENGINE ======
         function recalculateKPIsForWeek(weekStr) {
             const planners = ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"];
             database.kpi[weekStr] = planners.map(pName => {
                 const plannerTasks = (database.schedules[weekStr] || []).filter(t => t.planner === pName);
                 const doneTasks = plannerTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
                 const rate = plannerTasks.length > 0 ? parseFloat(((doneTasks.length / plannerTasks.length) * 100).toFixed(1)) : 0.0;
-                
-                let area = "Field Ops";
-                if (pName === "PHILIP") area = "Preventive Scope";
-                if (pName === "LEO") area = "Workshop Yard";
-                if (pName === "VINCENT") area = "Field Support";
-                
                 return { 
                     name: pName, 
                     type: plannerTasks[0]?.type || (pName === "PHILIP" ? "PMS" : "CM"), 
                     planned: plannerTasks.length, 
                     actual: doneTasks.length, 
                     rate: rate, 
-                    area: area 
+                    area: getPlannerArea(pName) 
                 };
             });
         }
 
+        // ====== RENDERING & APPLICATION WINDOW INTERACTION MANAGEMENT ======
         function syncInterfaceControls() {
             const sidebarSelect = document.getElementById('sidebar-week-select');
             const kpiSelect = document.getElementById('kpi-week-select');
             const scheduleSelect = document.getElementById('schedule-week-select');
             
-            const allWeeks = new Set([...Object.keys(database.schedules), ...Object.keys(database.kpi)]);
+            const allWeeks = new Set([...Object.keys(database.schedules), "22", "23", "24"]);
             const sortedWeeks = Array.from(allWeeks).sort((a, b) => parseInt(a) - parseInt(b));
 
-            const currentSelectVal = kpiSelect.value || currentlySelectedWeek;
             kpiSelect.innerHTML = '';
             sortedWeeks.forEach(w => {
                 kpiSelect.innerHTML += `<option value="${w}">Week ${w} Scorecard ${getWeekDateRange(w)}</option>`;
             });
-            if (sortedWeeks.includes(currentSelectVal)) kpiSelect.value = currentSelectVal;
+            kpiSelect.value = currentlySelectedWeek;
 
             if (scheduleSelect) {
                 scheduleSelect.innerHTML = '';
                 sortedWeeks.forEach(w => {
                     scheduleSelect.innerHTML += `<option value="${w}">Week ${w} Data Grid ${getWeekDateRange(w)}</option>`;
                 });
-                if (sortedWeeks.includes(currentlySelectedWeek)) scheduleSelect.value = currentlySelectedWeek;
+                scheduleSelect.value = currentlySelectedWeek;
             }
 
             sidebarSelect.innerHTML = '<option value="" disabled selected>Select an Operational Week Plan...</option>';
             sortedWeeks.forEach(w => {
                 sidebarSelect.innerHTML += `<option value="${w}">Week ${w} Schedule ${getWeekDateRange(w)}</option>`;
             });
-
-            if (activeTab.startsWith('week-')) {
-                const activeWeekNum = activeTab.replace('week-', '');
-                sidebarSelect.value = activeWeekNum;
-            } else {
-                sidebarSelect.value = "";
-            }
+            if (activeTab.startsWith('week-')) sidebarSelect.value = activeTab.replace('week-', '');
         }
 
         function switchTab(target) {
             activeTab = target;
-            
             const btnKpi = document.getElementById('btn-kpi');
             const btnInput = document.getElementById('btn-input-form');
 
-            // Synchronizes Sidebar Pill Elements visually matching the Design Mockup Color Palette Variables
             if(target === 'kpi') {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-900 transition";
+                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
             } else if (target === 'input-form') {
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-900 transition";
+                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
             } else {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
+                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
             }
 
             document.getElementById('panel-kpi').classList.add('hidden');
@@ -620,69 +325,28 @@
             syncInterfaceControls();
         }
 
-        function initializeNewWeekIfMissing(weekStr) {
-            if (!database.schedules[weekStr]) database.schedules[weekStr] = [];
-            if (!database.kpi[weekStr]) recalculateKPIsForWeek(weekStr);
-        }
-
-        function handleFormSubmit(event) {
-            event.preventDefault();
-            const wNum = document.getElementById('form-week').value.toString().trim();
-            initializeNewWeekIfMissing(wNum);
-
-            const newRow = {
-                no: database.schedules[wNum].length + 1,
-                equip: document.getElementById('form-equip').value.toUpperCase(),
-                planner: document.getElementById('form-planner').value,
-                type: document.getElementById('form-type').value,
-                activity: document.getElementById('form-activity').value,
-                date: document.getElementById('form-date').value || "UNSCHEDULED",
-                duration: document.getElementById('form-duration').value || "--",
-                info: document.getElementById('form-info').value || "NONE",
-                loc: document.getElementById('form-loc').value || "MAIN HQ",
-                status: document.getElementById('form-status').value
-            };
-
-            database.schedules[wNum].push(newRow);
-            recalculateKPIsForWeek(wNum);
-            commitToStorage();
-            document.getElementById('task-entry-form').reset();
-            currentlySelectedWeek = wNum;
-            switchTab(`week-${wNum}`);
-        }
-
         function renderKPITable(weekNum) {
             currentlySelectedWeek = weekNum.toString();
-            const currentRange = getWeekDateRange(currentlySelectedWeek);
-            document.getElementById('kpi-table-week-indicator').innerText = `Week ${weekNum} Metrics ${currentRange}`;
+            document.getElementById('kpi-table-week-indicator').innerText = `Week ${weekNum} Metrics ${getWeekDateRange(currentlySelectedWeek)}`;
             document.getElementById('header-week-indicator').innerText = `Active: Week ${weekNum} Matrix`;
 
             const targetArray = database.kpi[currentlySelectedWeek] || [];
             const tbody = document.getElementById('kpi-table-body');
             tbody.innerHTML = '';
 
-            let grandTotalPlanned = 0;
-            let grandTotalActual = 0;
+            let grandTotalPlanned = 0, grandTotalActual = 0;
 
             targetArray.forEach(row => {
                 grandTotalPlanned += row.planned;
                 grandTotalActual += row.actual;
                 const progressColor = row.rate >= 80 ? 'bg-emerald-500' : (row.rate >= 50 ? 'bg-amber-500' : 'bg-rose-500');
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50/50 transition border-b border-slate-100">
-                        <td class="py-3 px-6 font-bold text-slate-900">${row.name}</td>
-                        <td class="py-3 px-6 text-slate-500">
-                            <span class="font-semibold text-slate-700 text-[10px]">${row.type}</span>
-                            <span class="text-[9px] text-slate-400 ml-1">(${row.area})</span>
-                        </td>
-                        <td class="py-3 px-6 text-center font-bold text-slate-700">${row.planned}</td>
-                        <td class="py-3 px-6 text-center font-bold text-emerald-600">${row.actual}</td>
-                        <td class="py-3 px-6">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-28 bg-slate-100 rounded-full h-1.5"><div class="${progressColor} h-1.5 rounded-full" style="width: ${row.rate}%"></div></div>
-                                <span class="font-bold text-slate-800 text-[10px]">${row.rate}%</span>
-                            </div>
-                        </td>
+                    <tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
+                        <td class="py-2.5 px-5 font-bold text-slate-900">${row.name}</td>
+                        <td class="py-2.5 px-5 text-slate-500"><span class="font-semibold text-slate-700 text-[10px]">${row.type}</span><span class="text-[9px] text-slate-400 ml-1">(${row.area})</span></td>
+                        <td class="py-2.5 px-5 text-center font-bold text-slate-700">${row.planned}</td>
+                        <td class="py-2.5 px-5 text-center font-bold text-emerald-600">${row.actual}</td>
+                        <td class="py-2.5 px-5"><div class="flex items-center space-x-2"><div class="w-28 bg-slate-100 rounded-full h-1.5"><div class="${progressColor} h-1.5 rounded-full" style="width: ${row.rate}%"></div></div><span class="font-bold text-slate-800 text-[10px]">${row.rate}%</span></div></td>
                     </tr>`;
             });
 
@@ -715,38 +379,31 @@
 
                 if (matchSearch && matchPlanner && matchType && matchStatus) {
                     count++;
-                    
-                    // High sensitivity status indicator capsule layouts reflecting the target reference image layout design
-                    let badgeStyles = "bg-slate-100 text-slate-700 border-slate-200"; 
-                    if (normStatus === 'DONE') {
-                        badgeStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
-                    } else if (normStatus === 'NOT DONE') {
-                        badgeStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
-                    } else if (normStatus === 'ONGOING') {
-                        badgeStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
-                    } else if (normStatus === 'FOR SCHEDULE') {
-                        badgeStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
-                    }
+                    let badgeStyles = "bg-slate-50 text-slate-600 border-slate-200"; 
+                    if (normStatus === 'DONE') badgeStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
+                    else if (normStatus === 'NOT DONE') badgeStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
+                    else if (normStatus === 'ONGOING') badgeStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
+                    else if (normStatus === 'FOR SCHEDULE') badgeStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
                     
                     const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
 
                     tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
-                            <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
-                            <td class="py-2.5 px-3 font-bold text-slate-900 tracking-tight">${item.equip}</td>
-                            <td class="py-2.5 px-3 font-semibold text-slate-700">${item.planner}</td>
-                            <td class="py-2.5 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
-                            <td class="py-2.5 px-4 max-w-xs truncate text-slate-600" title="${item.activity}">${item.activity}</td>
-                            <td class="py-2.5 px-3 text-slate-500 font-medium">${item.date}</td>
-                            <td class="py-2.5 px-2 font-mono text-slate-500">${item.duration}</td>
-                            <td class="py-2.5 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
-                            <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
-                            <td class="py-2.5 px-2 text-center">
-                                <button onclick="toggleTaskStatus('${currentlySelectedWeek}', ${item.no})" title="Click to loop toggle completion state" class="px-3 py-1 text-[10px] rounded-full border ${badgeStyles} hover:opacity-80 active:scale-95 transition-all shadow-sm whitespace-nowrap">
-                                    • ${item.status}
+                        <tr class="hover:bg-slate-50/80 border-b border-slate-100 transition">
+                            <td class="py-2 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
+                            <td class="py-2 px-3 font-bold text-slate-900 tracking-tight">${item.equip}</td>
+                            <td class="py-2 px-3 font-semibold text-slate-700">${item.planner}</td>
+                            <td class="py-2 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
+                            <td class="py-2 px-4 max-w-xs truncate text-slate-600" title="${item.activity}">${item.activity}</td>
+                            <td class="py-2 px-3 text-slate-500 font-medium">${item.date}</td>
+                            <td class="py-2 px-2 font-mono text-slate-500">${item.duration}</td>
+                            <td class="py-2 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
+                            <td class="py-2 px-3 text-slate-500 font-semibold">${item.loc}</td>
+                            <td class="py-2 px-2 text-center">
+                                <button onclick="toggleTaskStatus('${currentlySelectedWeek}', ${item.no})" title="Click to loop toggle completion state" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${badgeStyles} hover:scale-105 active:scale-95 transition-all shadow-sm whitespace-nowrap">
+                                    ${item.status}
                                 </button>
                             </td>
-                            <td class="py-2.5 px-2 text-center whitespace-nowrap">
+                            <td class="py-2 px-2 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center space-x-1">
                                     <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Edit Row" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
                                         <i class="fa-solid fa-pen-to-square"></i>
@@ -759,7 +416,6 @@
                         </tr>`;
                 }
             });
-
             document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
         }
 
@@ -783,51 +439,9 @@
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
-        function closeEditModal() {
-            document.getElementById('edit-modal').classList.add('hidden');
-        }
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
 
-        function handleEditFormSubmit(event) {
-            event.preventDefault();
-            const weekStr = document.getElementById('edit-week').value;
-            const taskNo = parseInt(document.getElementById('edit-no').value);
-
-            const taskList = database.schedules[weekStr] || [];
-            const item = taskList.find(t => t.no === taskNo);
-            
-            if (item) {
-                item.equip = document.getElementById('edit-equip').value.toUpperCase();
-                item.type = document.getElementById('edit-type').value;
-                item.planner = document.getElementById('edit-planner').value;
-                item.status = document.getElementById('edit-status').value;
-                item.activity = document.getElementById('edit-activity').value;
-                item.date = document.getElementById('edit-date').value;
-                item.duration = document.getElementById('edit-duration').value;
-                item.loc = document.getElementById('edit-loc').value;
-                item.info = document.getElementById('edit-info').value;
-
-                recalculateKPIsForWeek(weekStr);
-                commitToStorage();
-                applyFilters();
-                closeEditModal();
-            }
-        }
-
-        function deleteTask(weekStr, taskNo) {
-            if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
-
-            let taskList = database.schedules[weekStr] || [];
-            database.schedules[weekStr] = taskList.filter(t => t.no !== taskNo);
-            
-            database.schedules[weekStr].forEach((item, index) => {
-                item.no = index + 1;
-            });
-
-            recalculateKPIsForWeek(weekStr);
-            commitToStorage();
-            applyFilters();
-        }
-
+        // Bulk CSV File Uploader Integration
         function importCSVFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -839,9 +453,7 @@
                 
                 let detectedWeek = "";
                 const fileNameMatch = file.name.match(/week\s*(\d+)/i);
-                if (fileNameMatch && fileNameMatch[1]) {
-                    detectedWeek = fileNameMatch[1].toString();
-                }
+                if (fileNameMatch && fileNameMatch[1]) detectedWeek = fileNameMatch[1].toString();
 
                 if (!detectedWeek) {
                     for (let i = 0; i < Math.min(lines.length, 15); i++) {
@@ -853,14 +465,10 @@
                         }
                     }
                 }
-
-                if (!detectedWeek) { detectedWeek = "24"; }
-
-                initializeNewWeekIfMissing(detectedWeek);
-                database.schedules[detectedWeek] = [];
+                if (!detectedWeek) detectedWeek = "24";
 
                 let currentPlanner = "PHILIP";
-                let validRowCount = 0;
+                let payloads = [];
 
                 lines.forEach(row => {
                     if (row.length < 3) return;
@@ -872,7 +480,6 @@
 
                     if (/^\d+$/.test(rowContent[0]) || /^\d+$/.test(row[1])) {
                         const startIdx = row[1] && /^\d+$/.test(row[1]) ? 1 : 0;
-                        validRowCount++;
                         const equip = row[startIdx + 1] || "UNSPECIFIED";
                         const thirdCol = row[startIdx + 2] || "";
                         let type = "CM", activity = thirdCol, offset = 0;
@@ -883,34 +490,46 @@
 
                         const statusVal = (row[startIdx + offset + 8] || "FOR SCHEDULE").toUpperCase();
 
-                        database.schedules[detectedWeek].push({
-                            no: validRowCount,
-                            equip: equip.toUpperCase(),
-                            planner: currentPlanner,
-                            type: type,
-                            activity: activity,
-                            date: row[startIdx + offset + 3] || "UNSCHEDULED",
-                            duration: row[startIdx + offset + 4] || "--",
-                            info: row[startIdx + offset + 6] || "NONE",
-                            loc: row[startIdx + offset + 7] || "WORKSHOP",
-                            status: statusVal.includes("DONE") && statusVal !== "NOT DONE" ? "DONE" : "NOT DONE"
+                        payloads.push({
+                            "Week": detectedWeek,
+                            "Equipment No": equip.toUpperCase(),
+                            "Assigned Planner": currentPlanner,
+                            "Type": type,
+                            "Activity Description": activity,
+                            "Target Date": row[startIdx + offset + 3] || "UNSCHEDULED",
+                            "Duration": row[startIdx + offset + 4] || "--",
+                            "Parts Status": row[startIdx + offset + 6] || "NONE",
+                            "Location": row[startIdx + offset + 7] || "WORKSHOP",
+                            "Current Status": statusVal.includes("DONE") && statusVal !== "NOT DONE" ? "DONE" : "NOT DONE"
                         });
                     }
                 });
 
-                recalculateKPIsForWeek(detectedWeek);
-                alert(`Loaded Week ${detectedWeek} successfully!`);
-                commitToStorage();
-                currentlySelectedWeek = detectedWeek;
-                switchTab(`week-${detectedWeek}`);
+                if (payloads.length === 0) {
+                    alert("No valid CSV data rows recognized.");
+                    return;
+                }
+
+                // Push all parsed records into the live SheetDB endpoint
+                fetch(SHEETDB_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: payloads })
+                })
+                .then(res => res.json())
+                .then(() => {
+                    alert(`Loaded ${payloads.length} rows into Week ${detectedWeek} Cloud Sheet successfully!`);
+                    currentlySelectedWeek = detectedWeek;
+                    switchTab(`week-${detectedWeek}`);
+                    loadDatabaseFromCloud();
+                });
             };
             reader.readAsText(file);
         }
 
+        // Initialize App View Lifecycle
         window.onload = function() {
-            commitToStorage();
+            loadDatabaseFromCloud();
             switchTab('kpi');
         };
     </script>
-</body>
-</html>
