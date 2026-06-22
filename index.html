@@ -1,14 +1,349 @@
-<script>
-        // ====== LIVE SHEETDB DATABASE CONFIGURATION ======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet & Equipment Maintenance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f6f5; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class=\"bg-[#f4f6f5] text-slate-800 antialiased h-screen overflow-hidden flex text-xs\">
+
+    <aside class="w-60 bg-[#18251f] flex flex-col justify-between flex-shrink-0 border-r border-emerald-950/20 text-slate-200">
+        <div>
+            <div class="p-4 border-b border-emerald-900/40 bg-[#121c17] flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-[#ffcc00] flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-screwdriver-wrench text-slate-900 text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-[11px] text-white tracking-wide uppercase">OAEC Heavy Fleet</h1>
+                    <p class="text-[9px] text-emerald-400 font-medium tracking-tight">Maintenance Ops Matrix</p>
+                </div>
+            </div>
+            
+            <div class="p-3">
+                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1.5">Main Panels</p>
+                <nav class="space-y-1">
+                    <button id="btn-kpi" onclick="switchTab('kpi')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 shadow-sm transition-all duration-150">
+                        <div class="flex items-center space-x-2.5">
+                            <i class="fa-solid fa-chart-bar text-xs opacity-90"></i>
+                            <span>Compliance Overview</span>
+                        </div>
+                        <span id="header-week-indicator" class="text-[9px] bg-slate-950/10 px-1.5 py-0.5 rounded font-mono">W23</span>
+                    </button>
+                    <button id="btn-input-form" onclick="switchTab('input-form')" class="w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150">
+                        <i class="fa-solid fa-square-plus text-xs mr-2.5 opacity-70"></i>
+                        <span>Data Input Matrix</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-3 border-t border-emerald-900/30 mt-1">
+                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-2">Operational Calendars</p>
+                <div class="px-2">
+                    <select id="sidebar-week-select" onchange="if(this.value) switchTab('week-'+this.value)" class="w-full bg-[#131e19] border border-emerald-900/60 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-[#ffcc00] transition">
+                        <option value="" disabled selected>Select an Operational Week Plan...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 bg-[#121c17] border-t border-emerald-900/40 text-[10px] text-slate-400 flex items-center justify-between font-medium">
+            <div class="flex items-center space-x-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="tracking-tight text-slate-300">Cloud Sync Active</span>
+            </div>
+            <span class="font-mono text-[9px] text-slate-500">v2.1.0</span>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden bg-[#f4f6f5]">
+        <header class="bg-white border-b border-slate-200/80 h-11 flex-shrink-0 flex items-center justify-between px-6 shadow-sm z-10">
+            <div class="flex items-center space-x-3">
+                <h2 id="view-header-title" class="font-bold text-slate-800 tracking-tight text-sm">Compliance Overview Metrics</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-[10px] font-medium text-slate-600">
+                    <span class="text-slate-400 mr-1.5 font-normal">Active Server Target:</span>
+                    <span class="font-mono text-slate-800 bg-slate-200/50 px-1 py-0.5 rounded text-[9px]">Google Drive API</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-5">
+            <div id="panel-kpi" class="space-y-5">
+                <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Weekly Compliance Metrics</h3>
+                        <p class="text-slate-500 text-[10px] mt-0.5">Summary tracking percentage rate per assigned scheduler segment</p>
+                    </div>
+                    <div class="w-64">
+                        <select id="kpi-week-select" onchange="renderKPITable(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm"></select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Planned Work Tasks</p>
+                            <h4 id="stat-total" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0</h4>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-list-check text-sm"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Completed Matrix Rows</p>
+                            <h4 id="stat-actual" class="text-2xl font-black text-emerald-600 mt-1 tracking-tight">0</h4>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Performance Rating</p>
+                            <h4 id="stat-rate" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0%</h4>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600"><i class="fa-solid fa-gauge-high text-sm"></i></div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                        <span id="kpi-table-week-indicator" class="font-bold text-slate-800 tracking-tight">Week Scorecard Metrics</span>
+                        <span class="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Live Synced</span>
+                    </div>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="py-2.5 px-6">Assigned Planner</th>
+                                <th class="py-2.5 px-6">Scope / Asset Segment</th>
+                                <th class="py-2.5 px-6 text-center">Planned</th>
+                                <th class="py-2.5 px-6 text-center">Actual Done</th>
+                                <th class="py-2.5 px-6">Completion Rate Bar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kpi-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-input-form" class="hidden grid grid-cols-3 gap-6 items-start">
+                <form id="task-entry-form" onsubmit="handleFormSubmit(event)" class="col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                    <div class="border-b border-slate-100 pb-2 mb-1">
+                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Insert Maintenance Record Row</h3>
+                        <p class="text-slate-400 text-[10px]">Populates new entry rows straight inside your Google Drive spreadsheet database.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Target Week</label>
+                            <input type="number" id="form-week" required min="1" max="53" value="23" class="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-1.5 font-bold text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Equipment No</label>
+                            <input type="text" id="form-equip" required placeholder="e.g. CR-08" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-bold uppercase text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Assigned Planner</label>
+                            <select id="form-planner" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                                <option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Scope Classification</label>
+                            <select id="form-type" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                                <option value="PM">PM (Preventive)</option><option value="CM">CM (Corrective)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Activity Work Description</label>
+                        <textarea id="form-activity" required rows="2" placeholder="Describe the active scope details, repair assembly requirements, structural items..." class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Target Date</label>
+                            <input type="text" id="form-date" placeholder="e.g. JUNE 6-11" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Duration</label>
+                            <input type="text" id="form-duration" placeholder="e.g. 5 HOURS" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Parts Status</label>
+                            <input type="text" id="form-info" placeholder="e.g. ARRIVED MATERIAL" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Operational Location</label>
+                            <input type="text" id="form-loc" placeholder="e.g. GEM WORKSHOP" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 items-end pt-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Initial Status State</label>
+                            <select id="form-status" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-bold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                                <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-slate-800 transition-all active:scale-98 flex items-center justify-center space-x-2 h-[30px]">
+                            <i class="fa-solid fa-cloud-arrow-up text-[11px] text-emerald-400"></i>
+                            <span>Commit Matrix Row</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                    <div class="border-b border-slate-100 pb-2">
+                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Bulk CSV Batch Importer</h3>
+                        <p class="text-slate-400 text-[10px]">Parse traditional planner files instantly into Google Sheets rows.</p>
+                    </div>
+                    <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center bg-slate-50/50 hover:bg-slate-50 transition relative">
+                        <input type="file" accept=".csv" onchange="importCSVFile(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+                        <div class="text-slate-400 space-y-1">
+                            <i class="fa-solid fa-file-csv text-2xl text-slate-300"></i>
+                            <p class="text-[10px] font-bold text-slate-600">Click to locate spreadsheet CSV</p>
+                            <p class="text-[9px] text-slate-400">Accepts standard layout matrices</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-schedules" class="hidden space-y-4">
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-3 flex-1">
+                        <div class="w-48 relative">
+                            <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Search equipment / description..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1 text-[11px] font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-inner">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+                        </div>
+                        <select id="filter-planner" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Planners</option><option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option></select>
+                        <select id="filter-type" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Scopes</option><option value="PM">PM Only</option><option value="CM">CM Only</option></select>
+                        <select id="filter-status" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Status States</option><option value="DONE">Completed Only</option><option value="NOT DONE">Incomplete Only</option></select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="carryOverNotDone()" class="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm transition-all active:scale-95 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-forward-fast text-amber-500"></i>
+                            <span>Carry Over "NOT DONE"</span>
+                        </button>
+                        <select id="schedule-week-select" onchange="switchTab('week-'+this.value)" class="bg-slate-900 text-white font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm focus:outline-none border-none cursor-pointer"></select>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-2.5 px-3 text-center w-10">Idx</th>
+                                    <th class="py-2.5 px-3">Equipment No</th>
+                                    <th class="py-2.5 px-3">Planner</th>
+                                    <th class="py-2.5 px-2 text-center">Type</th>
+                                    <th class="py-2.5 px-4 max-w-xs">Activity Description</th>
+                                    <th class="py-2.5 px-3">Target Date</th>
+                                    <th class="py-2.5 px-2">Duration</th>
+                                    <th class="py-2.5 px-3">Parts / Info Status</th>
+                                    <th class="py-2.5 px-3">Location</th>
+                                    <th class="py-2.5 px-2 text-center">Current Status</th>
+                                    <th class="py-2.5 px-2 text-center w-16">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table-body" class="divide-y divide-slate-100 text-[11px]"></tbody>
+                        </table>
+                    </div>
+                    <div id="table-empty-state" class="hidden p-8 text-center space-y-1 bg-slate-50/50">
+                        <i class="fa-solid fa-folder-open text-xl text-slate-300"></i>
+                        <p class="text-slate-500 font-bold text-[11px]">No matching operational database records detected</p>
+                        <p class="text-slate-400 text-[9px]">Check filters or add records via data panel forms</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-slate-800">
+                    <i class="fa-solid fa-pen-to-square text-xs text-blue-500"></i>
+                    <h3 class="font-black tracking-tight text-xs uppercase">Modify Row Entry Parameters</h3>
+                </div>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+            </div>
+            <form id="edit-task-form" onsubmit="handleEditFormSubmit(event)" class="p-5 space-y-4">
+                <input type="hidden" id="edit-week">
+                <input type="hidden" id="edit-no">
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Equipment Code</label>
+                        <input type="text" id="edit-equip" required class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 uppercase focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Assigned Planner</label>
+                        <select id="edit-planner" required class="w-full border border-slate-200 bg-white rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none">
+                            <option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Classification Type</label>
+                        <select id="edit-type" required class="w-full border border-slate-200 bg-white rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none">
+                            <option value="PM">PM (Preventive)</option><option value="CM">CM (Corrective)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Work Activity Scope Description</label>
+                    <textarea id="edit-activity" required rows="2" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Target Schedule Window</label>
+                        <input type="text" id="edit-date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Duration Metrics</label>
+                        <input type="text" id="edit-duration" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Operational Location</label>
+                        <input type="text" id="edit-loc" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Parts Status / Remarks</label>
+                        <input type="text" id="edit-info" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Execution Status State</label>
+                    <select id="edit-status" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none">
+                        <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeEditModal()" class="border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold px-4 py-1.5 rounded-lg text-[11px] transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white font-bold px-4 py-1.5 rounded-lg text-[11px] hover:bg-blue-700 shadow transitions">Commit Updates</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
         const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/p428lre6grrmb';
 
         let activeTab = 'kpi';
         let currentlySelectedWeek = '23';
-        
-        // This memory layer will be completely hydrated from SheetDB on load
         let database = { schedules: {}, kpi: {} };
 
-        // Helper function for sector matching
         function getPlannerArea(pName) {
             if (pName === "PHILIP") return "Preventive Scope";
             if (pName === "LEO") return "Workshop Yard";
@@ -18,7 +353,6 @@
             return "Tyre Logs";
         }
 
-        // Helper to translate dynamic operational timestamps
         function getWeekDateRange(weekStr) {
             const weekNum = parseInt(weekStr);
             if (isNaN(weekNum)) return "";
@@ -32,18 +366,15 @@
             return `(${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)})`;
         }
 
-        // 1. Core Synchronization Engine (Fetch records on load/update loops)
         function loadDatabaseFromCloud() {
             fetch(SHEETDB_API_URL)
             .then(response => response.json())
             .then(data => {
-                // Clear local states
                 database.schedules = {};
                 database.kpi = {};
 
                 if (!Array.isArray(data)) return;
 
-                // Group structural row data arrays into their corresponding operational week channels
                 data.forEach((row) => {
                     const w = row["Week"] ? row["Week"].toString().trim() : "23";
                     if (!database.schedules[w]) database.schedules[w] = [];
@@ -62,16 +393,13 @@
                     });
                 });
 
-                // Generate KPIs for all active weeks found in the spreadsheet data
                 const allWeeks = Object.keys(database.schedules);
                 if (allWeeks.length === 0) {
-                    allWeeks.push("22", "23", "24"); // Fallback defaults
+                    allWeeks.push("22", "23", "24");
                     database.schedules["23"] = [];
                 }
                 
                 allWeeks.forEach(w => recalculateKPIsForWeek(w));
-
-                // Sync interface view controls
                 syncInterfaceControls();
                 
                 if (activeTab === 'kpi') {
@@ -83,7 +411,6 @@
             .catch(err => console.error("Cloud synchronization engine error:", err));
         }
 
-        // 2. Add New Task Row
         function handleFormSubmit(event) {
             event.preventDefault();
             const wNum = document.getElementById('form-week').value.toString().trim();
@@ -115,7 +442,6 @@
             });
         }
 
-        // 3. Update Existing Row values via conditional tracking params
         function handleEditFormSubmit(event) {
             event.preventDefault();
             const weekStr = document.getElementById('edit-week').value;
@@ -137,7 +463,6 @@
                 "Parts Status": document.getElementById('edit-info').value
             };
 
-            // SheetDB PATCH operation uses specific matching conditions to target rows
             fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -153,7 +478,6 @@
             });
         }
 
-        // 4. Multi-state loop toggle for layout status badge buttons
         function toggleTaskStatus(weekStr, taskNo) {
             const taskList = database.schedules[weekStr] || [];
             const foundTask = taskList.find(t => t.no === taskNo);
@@ -178,7 +502,6 @@
             }
         }
 
-        // 5. Delete Target Row globally from Spreadsheet Data logs
         function deleteTask(weekStr, taskNo) {
             if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
 
@@ -197,7 +520,6 @@
             .then(() => loadDatabaseFromCloud());
         }
 
-        // 6. Bulk CSV Uploader Sync Integration
         function importCSVFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -282,7 +604,6 @@
             reader.readAsText(file);
         }
 
-        // 7. Carry Over "Not Done" Items to the next Pipeline Sequence
         function carryOverNotDone() {
             const currentWeekNum = parseInt(currentlySelectedWeek);
             if (isNaN(currentWeekNum)) return;
@@ -326,7 +647,6 @@
             });
         }
 
-        // ====== CORE METRICS KPI CALCULATOR ENGINE ======
         function recalculateKPIsForWeek(weekStr) {
             const planners = ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"];
             database.kpi[weekStr] = planners.map(pName => {
@@ -344,7 +664,6 @@
             });
         }
 
-        // ====== RENDERING & APPLICATION PANEL LIFECYCLE CONTROLS ======
         function syncInterfaceControls() {
             const sidebarSelect = document.getElementById('sidebar-week-select');
             const kpiSelect = document.getElementById('kpi-week-select');
@@ -527,7 +846,6 @@
 
         function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
 
-        // ====== SYSTEM INITIALIZATION VIEW LIFECYCLE ======
         window.onload = function() {
             loadDatabaseFromCloud();
             switchTab('kpi');
