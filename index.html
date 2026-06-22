@@ -281,7 +281,7 @@
             <form id="edit-task-form" onsubmit="handleEditFormSubmit(event)" class="p-5 space-y-4">
                 <input type="hidden" id="edit-week">
                 <input type="hidden" id="edit-no">
-                <input type="hidden" id="edit-orig-activity">
+                <input type="hidden" id="edit-row-id">
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Equipment Code</label>
@@ -400,6 +400,7 @@
                     
                     database.schedules[w].push({
                         no: database.schedules[w].length + 1,
+                        id: row["ID"] || "", // Track the genuine unique row identification key
                         equip: row["Equipment No"] || "",
                         planner: row["Assigned Planner"] || "",
                         type: row["Type"] || "CM",
@@ -435,7 +436,11 @@
             event.preventDefault();
             const wNum = document.getElementById('form-week').value.toString().trim();
             
+            // Generate a secure unique random numerical ID block when inputting fresh data rows
+            const uniqueRowId = "ID-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+
             const payload = {
+                "ID": uniqueRowId,
                 "Week": wNum,
                 "Equipment No": document.getElementById('form-equip').value.toUpperCase(),
                 "Assigned Planner": document.getElementById('form-planner').value,
@@ -463,51 +468,59 @@
             });
         }
 
-       function handleEditFormSubmit(event) {
-    event.preventDefault();
-    const weekStr = document.getElementById('edit-week').value;
-    // Switch to tracking via Equipment No to avoid updating identical activities across different machines
-    const targetEquipCode = encodeURIComponent(document.getElementById('edit-equip').value.toUpperCase());
+        function handleEditFormSubmit(event) {
+            event.preventDefault();
+            const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
 
-    const updatedData = {
-        "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
-        "Type": document.getElementById('edit-type').value,
-        "Assigned Planner": document.getElementById('edit-planner').value,
-        "Current Status": document.getElementById('edit-status').value,
-        "Activity Description": document.getElementById('edit-activity').value,
-        "Target Date": document.getElementById('edit-date').value,
-        "Duration": document.getElementById('edit-duration').value,
-        "Location": document.getElementById('edit-loc').value,
-        "Parts Status": document.getElementById('edit-info').value,
-        "Remarks": document.getElementById('edit-remarks').value
-    };
+            // If an ID doesn't exist for older historical rows, warn user
+            if (!targetIdValue || targetIdValue === "undefined" || targetIdValue === "") {
+                alert("This row doesn't have an ID assigned in your Google Sheet column yet. Please type any number/text into that row's ID column directly inside Google Sheets first.");
+                return;
+            }
 
-    // Updating via Equipment No matching instead of the generic activity string
-    fetch(`${SHEETDB_API_URL}/Equipment%20No/${targetEquipCode}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            data: updatedData
-        })
-    })
-    .then(res => res.json())
-    .then(() => {
-        closeEditModal();
-        loadDatabaseFromCloud();
-    })
-    .catch(err => console.error("Error updating record:", err));
-}
+            const updatedData = {
+                "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
+                "Type": document.getElementById('edit-type').value,
+                "Assigned Planner": document.getElementById('edit-planner').value,
+                "Current Status": document.getElementById('edit-status').value,
+                "Activity Description": document.getElementById('edit-activity').value,
+                "Target Date": document.getElementById('edit-date').value,
+                "Duration": document.getElementById('edit-duration').value,
+                "Location": document.getElementById('edit-loc').value,
+                "Parts Status": document.getElementById('edit-info').value,
+                "Remarks": document.getElementById('edit-remarks').value
+            };
+
+            // Safely target only the entry row matching this distinct specific ID
+            fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: updatedData
+                })
+            })
+            .then(res => res.json())
+            .then(() => {
+                closeEditModal();
+                loadDatabaseFromCloud();
+            });
+        }
 
         function deleteTask(weekStr, taskNo) {
-            if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
-
             const taskList = database.schedules[weekStr] || [];
             const item = taskList.find(t => t.no === taskNo);
             if (!item) return;
 
-            const targetValue = encodeURIComponent(item.activity);
+            if (!item.id) {
+                alert("Cannot delete: This row lacks a value in the ID column inside your sheet.");
+                return;
+            }
 
-            fetch(`${SHEETDB_API_URL}/Activity%20Description/${targetValue}`, {
+            if (!confirm(`Are you sure you want to permanently delete record for ${item.equip}?`)) return;
+
+            const targetIdValue = encodeURIComponent(item.id);
+
+            fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             })
@@ -543,7 +556,7 @@
                 let currentPlanner = "PHILIP";
                 let payloads = [];
 
-                lines.forEach(row => {
+                lines.forEach((row, rIndex) => {
                     if (row.length < 3) return;
                     const rowContent = row.filter(c => c !== "");
                     if (rowContent.length === 1 && ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"].includes(rowContent[0])) {
@@ -562,8 +575,10 @@
                         } else if (thirdCol.toUpperCase().startsWith("PM ")) { type = "PM"; }
 
                         const statusVal = (row[startIdx + offset + 8] || "FOR SCHEDULE").toUpperCase();
+                        const uniqueCSVRowId = "ID-CSV-" + Date.now() + "-" + rIndex + "-" + Math.floor(Math.random() * 100);
 
                         payloads.push({
+                            "ID": uniqueCSVRowId,
                             "Week": detectedWeek,
                             "Equipment No": equip.toUpperCase(),
                             "Assigned Planner": currentPlanner,
@@ -613,9 +628,11 @@
                 return;
             }
             
-            const payloads = notDoneTasks.map(item => {
+            const payloads = notDoneTasks.map((item, index) => {
                 const priorityPrefix = "[PRIORITY]";
+                const uniqueIdValue = "ID-CARRY-" + Date.now() + "-" + index;
                 return {
+                    "ID": uniqueIdValue,
                     "Week": nextWeekStr,
                     "Equipment No": item.equip,
                     "Assigned Planner": item.planner,
@@ -833,7 +850,7 @@
 
             document.getElementById('edit-week').value = weekStr;
             document.getElementById('edit-no').value = taskNo;
-            document.getElementById('edit-orig-activity').value = item.activity; 
+            document.getElementById('edit-row-id').value = item.id || ""; 
             document.getElementById('edit-equip').value = item.equip;
             document.getElementById('edit-type').value = item.type;
             document.getElementById('edit-planner').value = item.planner;
