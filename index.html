@@ -482,12 +482,16 @@
                 "Remarks": document.getElementById('edit-remarks').value
             };
 
-            const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`;
-
-            fetch(queryUrl, {
-                method: 'PATCH',
+            // Using clean global PUT update by query object to bypass url breaks
+            fetch(SHEETDB_API_URL, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    query: {
+                        "Week": weekStr,
+                        "Equipment No": equipmentCode,
+                        "Activity Description": originalActivity
+                    },
                     data: updatedData
                 })
             })
@@ -503,23 +507,27 @@
             const foundTask = taskList.find(t => t.no === taskNo);
             
             if (foundTask) {
-                const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`;
-
-                fetch(queryUrl, {
-                    method: 'PATCH',
+                // SheetDB safely processes multiple conditions inside a body query array with PUT
+                fetch(SHEETDB_API_URL, {
+                    method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        query: {
+                            "Week": weekStr,
+                            "Equipment No": foundTask.equip,
+                            "Activity Description": foundTask.activity
+                        },
                         data: { "Current Status": selectedStatus }
                     })
                 })
                 .then(res => {
-                    if (!res.ok) throw new Error(`Server code ${res.status}`);
+                    if (!res.ok) throw new Error(`Server returned code ${res.status}`);
                     return res.json();
                 })
                 .then(() => loadDatabaseFromCloud())
                 .catch(err => {
                     console.error("Update failed:", err);
-                    alert("Failed to sync the selection changes back to the cloud document.");
+                    alert("Synchronization failed. Check connection or console syntax logs.");
                 });
             }
         }
@@ -531,9 +539,15 @@
             const item = taskList.find(t => t.no === taskNo);
             if (!item) return;
 
-            fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(item.equip)}&Activity Description=${encodeURIComponent(item.activity)}`, {
+            // Using body criteria filtering on delete request layout to manage descriptions safely
+            fetch(SHEETDB_API_URL, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "Week": weekStr,
+                    "Equipment No": item.equip,
+                    "Activity Description": item.activity
+                })
             })
             .then(res => res.json())
             .then(() => loadDatabaseFromCloud());
