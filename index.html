@@ -803,9 +803,9 @@
                             <td class="py-2.5 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
                             <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
                             <td class="py-2.5 px-3 text-center">
-                                <span class="px-2.5 py-1 text-[10px] rounded-full border shadow-sm tracking-wide font-bold uppercase ${badgeStyles}">
+                                <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Click to quickly update status" class="px-2.5 py-1 text-[10px] rounded-full border shadow-sm tracking-wide font-bold uppercase transition active:scale-95 hover:brightness-95 ${badgeStyles}">
                                     ${item.status}
-                                </span>
+                                </button>
                             </td>
                             <td class="py-2.5 px-2 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center space-x-1">
