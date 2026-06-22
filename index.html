@@ -464,62 +464,62 @@
         }
 
         function handleEditFormSubmit(event) {
-    event.preventDefault();
-    const weekStr = document.getElementById('edit-week').value;
-    const originalActivity = document.getElementById('edit-orig-activity').value;
-    const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
+            event.preventDefault();
+            const weekStr = document.getElementById('edit-week').value;
+            const originalActivity = document.getElementById('edit-orig-activity').value;
+            const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
 
-    const updatedData = {
-        "Equipment No": equipmentCode,
-        "Type": document.getElementById('edit-type').value,
-        "Assigned Planner": document.getElementById('edit-planner').value,
-        "Current Status": document.getElementById('edit-status').value,
-        "Activity Description": document.getElementById('edit-activity').value,
-        "Target Date": document.getElementById('edit-date').value,
-        "Duration": document.getElementById('edit-duration').value,
-        "Location": document.getElementById('edit-loc').value,
-        "Parts Status": document.getElementById('edit-info').value,
-        "Remarks": document.getElementById('edit-remarks').value
-    };
+            const updatedData = {
+                "Equipment No": equipmentCode,
+                "Type": document.getElementById('edit-type').value,
+                "Assigned Planner": document.getElementById('edit-planner').value,
+                "Current Status": document.getElementById('edit-status').value,
+                "Activity Description": document.getElementById('edit-activity').value,
+                "Target Date": document.getElementById('edit-date').value,
+                "Duration": document.getElementById('edit-duration').value,
+                "Location": document.getElementById('edit-loc').value,
+                "Parts Status": document.getElementById('edit-info').value,
+                "Remarks": document.getElementById('edit-remarks').value
+            };
 
-    // Filter using the search endpoint so only this specific asset row gets updated
-    fetch(`${SHEETDB_API_URL}/search?Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            data: updatedData
-        })
-    })
-    .then(res => res.json())
-    .then(() => {
-        closeEditModal();
-        loadDatabaseFromCloud();
-    });
-}
+            // Targets unique row by matching Week, Equipment No, and Activity name combined
+            fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: updatedData
+                })
+            })
+            .then(res => res.json())
+            .then(() => {
+                closeEditModal();
+                loadDatabaseFromCloud();
+            });
+        }
 
         function toggleTaskStatus(weekStr, taskNo) {
-    const taskList = database.schedules[weekStr] || [];
-    const foundTask = taskList.find(t => t.no === taskNo);
-    
-    if (foundTask) {
-        const cur = foundTask.status.trim().toUpperCase();
-        let nextStatus = "DONE";
-        if (cur === "DONE") nextStatus = "NOT DONE";
-        else if (cur === "NOT DONE") nextStatus = "ONGOING";
-        else if (cur === "ONGOING") nextStatus = "FOR SCHEDULE";
+            const taskList = database.schedules[weekStr] || [];
+            const foundTask = taskList.find(t => t.no === taskNo);
+            
+            if (foundTask) {
+                const cur = foundTask.status.trim().toUpperCase();
+                let nextStatus = "DONE";
+                if (cur === "DONE") nextStatus = "NOT DONE";
+                else if (cur === "NOT DONE") nextStatus = "ONGOING";
+                else if (cur === "ONGOING") nextStatus = "FOR SCHEDULE";
 
-        // Query both fields using SheetDB's search pattern syntax
-        fetch(`${SHEETDB_API_URL}/search?Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                data: { "Current Status": nextStatus }
-            })
-        })
-        .then(res => res.json())
-        .then(() => loadDatabaseFromCloud());
-    }
-}
+                // Targets unique row by matching Week, Equipment No, and Activity name combined
+                fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: { "Current Status": nextStatus }
+                    })
+                })
+                .then(res => res.json())
+                .then(() => loadDatabaseFromCloud());
+            }
+        }
 
         function deleteTask(weekStr, taskNo) {
             if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
@@ -528,7 +528,8 @@
             const item = taskList.find(t => t.no === taskNo);
             if (!item) return;
 
-            fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(item.activity)}`, {
+            // Targets unique row deletion by query parameters instead of global activity text alone
+            fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(item.equip)}&Activity Description=${encodeURIComponent(item.activity)}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             })
@@ -608,7 +609,7 @@
                 fetch(SHEETDB_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: [payloads] })
+                    body: JSON.stringify({ data: payloads })
                 })
                 .then(res => res.json())
                 .then(() => {
@@ -810,7 +811,6 @@
                     
                     const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
 
-                    // If a remark exists, let's create a tool-tip indicator next to the activity description text
                     const remarksIndicator = item.remarks ? `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 max-w-max truncate border border-rose-100"><i class="fa-solid fa-comment-dots mr-1"></i>${item.remarks}</div>` : '';
 
                     tbody.innerHTML += `
