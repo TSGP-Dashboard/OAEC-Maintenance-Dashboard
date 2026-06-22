@@ -13,6 +13,13 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @media print {
+            body { background: white !important; text-color: black !important; font-size: 10px !important; }
+            aside, header, #print-action-btn, .no-print { display: none !important; }
+            main { p: 0 !important; overflow: visible !important; height: auto !important; }
+            .print-card { border: 1px solid #cbd5e1 !important; box-shadow: none !important; margin-bottom: 15px !important; }
+        }
     </style>
 </head>
 <body class="bg-[#f4f6f5] text-slate-800 antialiased h-screen overflow-hidden flex text-xs">
@@ -61,7 +68,7 @@
                 <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 <span class="tracking-tight text-slate-300">Cloud Sync Active</span>
             </div>
-            <span class="font-mono text-[9px] text-slate-500">v2.2.0</span>
+            <span class="font-mono text-[9px] text-slate-500">v2.3.0</span>
         </div>
     </aside>
 
@@ -80,12 +87,16 @@
 
         <div class="flex-1 overflow-y-auto p-6 space-y-5">
             <div id="panel-kpi" class="space-y-5">
-                <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm no-print">
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm tracking-tight">Performance Scorecard Filtering</h3>
                         <p class="text-slate-500 text-[10px] mt-0.5">Isolate compliance metric parameters by designated operational time horizons</p>
                     </div>
                     <div class="flex items-center space-x-3">
+                        <button id="print-action-btn" onclick="window.print()" class="bg-white border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 flex items-center space-x-1.5 shadow-sm transition">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i>
+                            <span>Export Executive Report</span>
+                        </button>
                         <div>
                             <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Filter Level</label>
                             <select id="kpi-type-select" onchange="toggleKPITimeframeInputs()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm">
@@ -119,42 +130,50 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between print-card">
                         <div>
                             <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Planned Work Tasks</p>
                             <h4 id="stat-total" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0</h4>
                         </div>
-                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-list-check text-sm"></i></div>
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 no-print"><i class="fa-solid fa-list-check text-sm"></i></div>
                     </div>
-                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between print-card">
                         <div>
                             <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Completed</p>
                             <h4 id="stat-actual" class="text-2xl font-black text-emerald-600 mt-1 tracking-tight">0</h4>
                         </div>
-                        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 no-print"><i class="fa-solid fa-circle-check text-sm"></i></div>
                     </div>
-                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between print-card">
                         <div>
                             <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Performance Rating</p>
                             <h4 id="stat-rate" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0%</h4>
                         </div>
-                        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600"><i class="fa-solid fa-gauge-high text-sm"></i></div>
+                        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 no-print"><i class="fa-solid fa-gauge-high text-sm"></i></div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden print-card">
                     <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                         <span id="kpi-table-week-indicator" class="font-bold text-slate-800 tracking-tight">Week Scorecard Metrics</span>
-                        <span class="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Live Synced</span>
+                        <div class="flex items-center space-x-3 text-[9px]">
+                            <div class="flex items-center space-x-1.5 no-print">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-slate-500">High (≥80%)</span>
+                                <span class="w-2 h-2 rounded-full bg-amber-500 ml-1"></span><span class="text-slate-500">Target (50-79%)</span>
+                                <span class="w-2 h-2 rounded-full bg-rose-500 ml-1"></span><span class="text-slate-500">Lagging (&lt;50%)</span>
+                            </div>
+                        </div>
                     </div>
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
                                 <th class="py-2.5 px-6">Assigned Planner</th>
-                                <th class="py-2.5 px-6">Scope / Asset Segment</th>
-                                <th class="py-2.5 px-6 text-center">Planned Tasks</th>
-                                <th class="py-2.5 px-6 text-center">Actual Done</th>
-                                <th class="py-2.5 px-6">Accomplishment Rate</th>
+                                <th class="py-2.5 px-4">Area Segment</th>
+                                <th class="py-2.5 px-4 text-center border-l border-slate-200/60 bg-indigo-50/20">PM Plan (Done)</th>
+                                <th class="py-2.5 px-4 text-center bg-indigo-50/20">PM %</th>
+                                <th class="py-2.5 px-4 text-center border-l border-slate-200/60 bg-orange-50/20">CM Plan (Done)</th>
+                                <th class="py-2.5 px-4 text-center bg-orange-50/20">CM %</th>
+                                <th class="py-2.5 px-6 border-l border-slate-200 font-black text-slate-600 text-center bg-slate-100/40">Total Rating</th>
                             </tr>
                         </thead>
                         <tbody id="kpi-table-body"></tbody>
@@ -382,29 +401,20 @@
         let currentlySelectedWeek = '23';
         let database = { schedules: {} };
 
-        // Standard Operational ISO Week boundaries mapped directly to calendar month periods
         const MONTH_WEEK_MAPPINGS = {
-            Jan: [1,2,3,4],
-            Feb: [5,6,7,8],
-            Mar: [9,10,11,12,13],
-            Apr: [14,15,16,17],
-            May: [18,19,20,21,22],
-            Jun: [23,24,25,26],
-            Jul: [27,28,29,30,31],
-            Aug: [32,33,34,35],
-            Sep: [36,37,38,39],
-            Oct: [40,41,42,43,44],
-            Nov: [45,46,47,48],
-            Dec: [49,50,51,52,53]
+            Jan: [1,2,3,4], Feb: [5,6,7,8], Mar: [9,10,11,12,13],
+            Apr: [14,15,16,17], May: [18,19,20,21,22], Jun: [23,24,25,26],
+            Jul: [27,28,29,30,31], Aug: [32,33,34,35], Sep: [36,37,38,39],
+            Oct: [40,41,42,43,44], Nov: [45,46,47,48], Dec: [49,50,51,52,53]
         };
 
         function getPlannerArea(pName) {
-            if (pName === "PHILIP") return "PMS ACTIVITIES";
+            if (pName === "PHILIP") return "PMS SCOPE";
             if (pName === "LEO") return "GEM & LOS AMIGOS";
-            if (pName === "VINCENT") return "REGION XIII, SINUDA";
-            if (pName === "GLENBERTH") return "REGION XI";
-            if (pName === "ROICE") return "Samal & Cranes";
-            return "Tyres, SV, TM";
+            if (pName === "VINCENT") return "REG XIII, SINUDA";
+            if (pName === "GLENBERTH") return "REGION XI YARDS";
+            if (pName === "ROICE") return "CRANES & SAMAL";
+            return "TYRES, TRACTORS";
         }
 
         function getWeekDateRange(weekStr) {
@@ -441,7 +451,6 @@
             .then(response => response.json())
             .then(data => {
                 database.schedules = {};
-
                 if (!Array.isArray(data)) return;
 
                 data.forEach((row) => {
@@ -466,17 +475,13 @@
 
                 const allWeeks = Object.keys(database.schedules);
                 if (allWeeks.length === 0) {
-                    allWeeks.push("22", "23", "24");
+                    allWeeks.push("23");
                     database.schedules["23"] = [];
                 }
                 
                 syncInterfaceControls();
-                
-                if (activeTab === 'kpi') {
-                    renderKPITable();
-                } else if (activeTab.startsWith('week-')) {
-                    applyFilters();
-                }
+                if (activeTab === 'kpi') renderKPITable();
+                else if (activeTab.startsWith('week-')) applyFilters();
             })
             .catch(err => console.error("Cloud synchronization engine error:", err));
         }
@@ -487,8 +492,7 @@
             const uniqueRowId = "ID-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
 
             const payload = {
-                "ID": uniqueRowId,
-                "Week": wNum,
+                "ID": uniqueRowId, "Week": wNum,
                 "Equipment No": document.getElementById('form-equip').value.toUpperCase(),
                 "Assigned Planner": document.getElementById('form-planner').value,
                 "Type": document.getElementById('form-type').value,
@@ -497,16 +501,13 @@
                 "Duration": document.getElementById('form-duration').value || "--",
                 "Parts Status": document.getElementById('form-info').value || "NONE",
                 "Location": document.getElementById('form-loc').value || "MAIN HQ",
-                "Current Status": document.getElementById('form-status').value,
-                "Remarks": ""
+                "Current Status": document.getElementById('form-status').value, "Remarks": ""
             };
 
             fetch(SHEETDB_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data: [payload] })
             })
-            .then(res => res.json())
             .then(() => {
                 document.getElementById('task-entry-form').reset();
                 currentlySelectedWeek = wNum;
@@ -518,11 +519,7 @@
         function handleEditFormSubmit(event) {
             event.preventDefault();
             const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
-
-            if (!targetIdValue || targetIdValue === "undefined" || targetIdValue === "") {
-                alert("This row doesn't have an ID assigned in your Google Sheet column yet.");
-                return;
-            }
+            if (!targetIdValue) { alert("Missing standard Row unique database index ID column."); return; }
 
             const updatedData = {
                 "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
@@ -538,35 +535,19 @@
             };
 
             fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data: updatedData })
             })
-            .then(res => res.json())
-            .then(() => {
-                closeEditModal();
-                loadDatabaseFromCloud();
-            });
+            .then(() => { closeEditModal(); loadDatabaseFromCloud(); });
         }
 
         function deleteTask(weekStr, taskNo) {
             const taskList = database.schedules[weekStr] || [];
             const item = taskList.find(t => t.no === taskNo);
-            if (!item) return;
+            if (!item || !item.id) return;
 
-            if (!item.id) {
-                alert("Cannot delete: This row lacks a value in the ID column.");
-                return;
-            }
-
-            if (!confirm(`Are you sure you want to permanently delete record for ${item.equip}?`)) return;
-            const targetIdValue = encodeURIComponent(item.id);
-
-            fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(res => res.json())
+            if (!confirm(`Permanently drop record target for ${item.equip}?`)) return;
+            fetch(`${SHEETDB_API_URL}/ID/${encodeURIComponent(item.id)}`, { method: 'DELETE' })
             .then(() => loadDatabaseFromCloud());
         }
 
@@ -576,64 +557,38 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n').map(l => l.split(',').map(cell => cell.replace(/^"|"$/g, '').trim()));
-                
-                let detectedWeek = "";
+                const lines = e.target.result.split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+                let detectedWeek = "24";
                 const fileNameMatch = file.name.match(/week\s*(\d+)/i);
-                if (fileNameMatch && fileNameMatch[1]) detectedWeek = fileNameMatch[1].toString();
+                if (fileNameMatch) detectedWeek = fileNameMatch[1];
 
-                let currentPlanner = "PHILIP";
-                let payloads = [];
-
+                let currentPlanner = "PHILIP", payloads = [];
                 lines.forEach((row, rIndex) => {
                     if (row.length < 3) return;
-                    const rowContent = row.filter(c => c !== "");
-                    if (rowContent.length === 1 && ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"].includes(rowContent[0])) {
-                        currentPlanner = rowContent[0];
-                        return;
+                    const cleanRow = row.filter(c => c !== "");
+                    if (cleanRow.length === 1 && ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"].includes(cleanRow[0])) {
+                        currentPlanner = cleanRow[0]; return;
                     }
-
-                    if (/^\d+$/.test(rowContent[0]) || /^\d+$/.test(row[1])) {
-                        const startIdx = row[1] && /^\d+$/.test(row[1]) ? 1 : 0;
-                        const equip = row[startIdx + 1] || "UNSPECIFIED";
-                        const thirdCol = row[startIdx + 2] || "";
-                        let type = "CM", activity = thirdCol, offset = 0;
-
-                        if (["PM", "CM"].includes(thirdCol.toUpperCase())) {
-                            type = thirdCol.toUpperCase(); activity = row[startIdx + 3] || ""; offset = 1;
-                        }
-
-                        const statusVal = (row[startIdx + offset + 8] || "FOR SCHEDULE").toUpperCase();
-                        const uniqueCSVRowId = "ID-CSV-" + Date.now() + "-" + rIndex;
+                    if (/^\d+$/.test(cleanRow[0]) || /^\d+$/.test(row[1])) {
+                        const sIdx = row[1] && /^\d+$/.test(row[1]) ? 1 : 0;
+                        let type = "CM", act = row[sIdx + 2] || "", offset = 0;
+                        if (["PM", "CM"].includes(act.toUpperCase())) { type = act.toUpperCase(); act = row[sIdx + 3] || ""; offset = 1; }
+                        const stat = (row[sIdx + offset + 8] || "FOR SCHEDULE").toUpperCase();
 
                         payloads.push({
-                            "ID": uniqueCSVRowId,
-                            "Week": detectedWeek || "24",
-                            "Equipment No": equip.toUpperCase(),
-                            "Assigned Planner": currentPlanner,
-                            "Type": type,
-                            "Activity Description": activity,
-                            "Target Date": row[startIdx + offset + 3] || "UNSCHEDULED",
-                            "Duration": row[startIdx + offset + 4] || "--",
-                            "Parts Status": row[startIdx + offset + 6] || "NONE",
-                            "Location": row[startIdx + offset + 7] || "WORKSHOP",
-                            "Current Status": statusVal.includes("DONE") && statusVal !== "NOT DONE" ? "DONE" : "NOT DONE",
-                            "Remarks": ""
+                            "ID": "ID-CSV-" + Date.now() + "-" + rIndex, "Week": detectedWeek,
+                            "Equipment No": (row[sIdx + 1] || "").toUpperCase(), "Assigned Planner": currentPlanner,
+                            "Type": type, "Activity Description": act, "Target Date": row[sIdx + offset + 3] || "",
+                            "Duration": row[sIdx + offset + 4] || "", "Parts Status": row[sIdx + offset + 6] || "",
+                            "Location": row[sIdx + offset + 7] || "", "Current Status": stat.includes("DONE") ? "DONE" : "NOT DONE", "Remarks": ""
                         });
                     }
                 });
 
                 fetch(SHEETDB_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ data: payloads })
-                })
-                .then(res => res.json())
-                .then(() => {
-                    alert(`Loaded CSV entries successfully!`);
-                    loadDatabaseFromCloud();
-                });
+                }).then(() => { alert("Import Complete."); loadDatabaseFromCloud(); });
             };
             reader.readAsText(file);
         }
@@ -642,44 +597,21 @@
             const currentWeekNum = parseInt(currentlySelectedWeek);
             if (isNaN(currentWeekNum)) return;
             const nextWeekStr = (currentWeekNum + 1).toString();
+            const notDoneTasks = (database.schedules[currentlySelectedWeek] || []).filter(t => t.status.trim().toUpperCase() === "NOT DONE");
             
-            const currentTasks = database.schedules[currentlySelectedWeek] || [];
-            const notDoneTasks = currentTasks.filter(t => t.status.trim().toUpperCase() === "NOT DONE");
+            if (notDoneTasks.length === 0) { alert("No incomplete jobs found."); return; }
             
-            if (notDoneTasks.length === 0) {
-                alert(`No "NOT DONE" tasks found to carry over.`);
-                return;
-            }
-            
-            const payloads = notDoneTasks.map((item, index) => {
-                return {
-                    "ID": "ID-CARRY-" + Date.now() + "-" + index,
-                    "Week": nextWeekStr,
-                    "Equipment No": item.equip,
-                    "Assigned Planner": item.planner,
-                    "Type": item.type,
-                    "Activity Description": item.activity.startsWith("[PRIORITY]") ? item.activity : `[PRIORITY] ${item.activity}`,
-                    "Target Date": `Carried from W${currentlySelectedWeek}`,
-                    "Duration": item.duration,
-                    "Parts Status": item.info,
-                    "Location": item.loc,
-                    "Current Status": "NOT DONE",
-                    "Remarks": item.remarks
-                };
-            });
+            const payloads = notDoneTasks.map((item, idx) => ({
+                "ID": "ID-CARRY-" + Date.now() + "-" + idx, "Week": nextWeekStr, "Equipment No": item.equip,
+                "Assigned Planner": item.planner, "Type": item.type, "Activity Description": `[PRIORITY] ${item.activity}`,
+                "Target Date": `Carried from W${currentlySelectedWeek}`, "Duration": item.duration,
+                "Parts Status": item.info, "Location": item.loc, "Current Status": "NOT DONE", "Remarks": item.remarks
+            }));
 
             fetch(SHEETDB_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data: payloads })
-            })
-            .then(res => res.json())
-            .then(() => {
-                alert(`Carried over items to Week ${nextWeekStr}.`);
-                currentlySelectedWeek = nextWeekStr;
-                switchTab(`week-${nextWeekStr}`);
-                loadDatabaseFromCloud();
-            });
+            }).then(() => { currentlySelectedWeek = nextWeekStr; switchTab(`week-${nextWeekStr}`); loadDatabaseFromCloud(); });
         }
 
         function syncInterfaceControls() {
@@ -691,42 +623,22 @@
             const sortedWeeks = Array.from(allWeeks).sort((a, b) => parseInt(a) - parseInt(b));
 
             kpiSelect.innerHTML = '';
-            sortedWeeks.forEach(w => {
-                kpiSelect.innerHTML += `<option value="${w}">Week ${w} ${getWeekDateRange(w)}</option>`;
-            });
+            sortedWeeks.forEach(w => kpiSelect.innerHTML += `<option value="${w}">Week ${w} ${getWeekDateRange(w)}</option>`);
             kpiSelect.value = currentlySelectedWeek;
 
             if (scheduleSelect) {
                 scheduleSelect.innerHTML = '';
-                sortedWeeks.forEach(w => {
-                    scheduleSelect.innerHTML += `<option value="${w}">Week ${w} Data Grid</option>`;
-                });
+                sortedWeeks.forEach(w => scheduleSelect.innerHTML += `<option value="${w}">Week ${w} Grid</option>`);
                 scheduleSelect.value = currentlySelectedWeek;
             }
 
             sidebarSelect.innerHTML = '<option value="" disabled selected>Select Operational Week Plan...</option>';
-            sortedWeeks.forEach(w => {
-                sidebarSelect.innerHTML += `<option value="${w}">Week ${w} Schedule</option>`;
-            });
+            sortedWeeks.forEach(w => sidebarSelect.innerHTML += `<option value="${w}">Week ${w} Schedule</option>`);
             if (activeTab.startsWith('week-')) sidebarSelect.value = activeTab.replace('week-', '');
         }
 
         function switchTab(target) {
             activeTab = target;
-            const btnKpi = document.getElementById('btn-kpi');
-            const btnInput = document.getElementById('btn-input-form');
-
-            if(target === 'kpi') {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
-            } else if (target === 'input-form') {
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
-            } else {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
-            }
-
             document.getElementById('panel-kpi').classList.add('hidden');
             document.getElementById('panel-input-form').classList.add('hidden');
             document.getElementById('panel-schedules').classList.add('hidden');
@@ -753,27 +665,18 @@
             const targetWeek = document.getElementById('kpi-week-select').value;
             const targetMonth = document.getElementById('kpi-month-select').value;
             
-            let labelText = "";
-            let collectedTasks = [];
+            let labelText = "", collectedTasks = [];
 
-            // Grouping database entries dynamically by selected timeframe horizon
             if (viewType === 'weekly') {
                 currentlySelectedWeek = targetWeek;
-                labelText = `Week ${targetWeek} Performance Matrix ${getWeekDateRange(targetWeek)}`;
+                labelText = `Week ${targetWeek} Performance Scorecard ${getWeekDateRange(targetWeek)}`;
                 collectedTasks = database.schedules[targetWeek] || [];
             } else if (viewType === 'monthly') {
-                labelText = `${document.getElementById('kpi-month-select').options[document.getElementById('kpi-month-select').selectedIndex].text} Aggregate Scorecard`;
-                const targetedWeeks = MONTH_WEEK_MAPPINGS[targetMonth] || [];
-                targetedWeeks.forEach(w => {
-                    if (database.schedules[w]) {
-                        collectedTasks = collectedTasks.concat(database.schedules[w]);
-                    }
-                });
+                labelText = `${document.getElementById('kpi-month-select').options[document.getElementById('kpi-month-select').selectedIndex].text} Aggregate Summary`;
+                (MONTH_WEEK_MAPPINGS[targetMonth] || []).forEach(w => { if (database.schedules[w]) collectedTasks = collectedTasks.concat(database.schedules[w]); });
             } else if (viewType === 'ytd') {
                 labelText = "Overall Year-To-Date (YTD) Cumulative Accomplishment Metrics";
-                Object.keys(database.schedules).forEach(w => {
-                    collectedTasks = collectedTasks.concat(database.schedules[w]);
-                });
+                Object.keys(database.schedules).forEach(w => collectedTasks = collectedTasks.concat(database.schedules[w]));
             }
 
             document.getElementById('kpi-table-week-indicator').innerText = labelText;
@@ -788,21 +691,36 @@
             planners.forEach(pName => {
                 const plannerTasks = collectedTasks.filter(t => t.planner === pName);
                 const doneTasks = plannerTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
-                const rate = plannerTasks.length > 0 ? parseFloat(((doneTasks.length / plannerTasks.length) * 100).toFixed(1)) : 0.0;
                 
-                grandTotalPlanned += plannerTasks.length;
-                grandTotalActual += doneTasks.length;
+                // Segregate PM / CM breakdowns dynamically
+                const pmTasks = plannerTasks.filter(t => t.type === 'PM');
+                const pmDone = pmTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
+                const pmRate = pmTasks.length > 0 ? ((pmDone.length / pmTasks.length) * 100).toFixed(0) + "%" : "--";
 
-                const progressColor = rate >= 80 ? 'bg-emerald-500' : (rate >= 50 ? 'bg-amber-500' : 'bg-rose-500');
-                const pType = plannerTasks[0]?.type || (pName === "PHILIP" ? "PM" : "CM");
+                const cmTasks = plannerTasks.filter(t => t.type === 'CM');
+                const cmDone = cmTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
+                const cmRate = cmTasks.length > 0 ? ((cmDone.length / cmTasks.length) * 100).toFixed(0) + "%" : "--";
+
+                const overallRate = plannerTasks.length > 0 ? parseFloat(((doneTasks.length / plannerTasks.length) * 100).toFixed(1)) : 0.0;
+                grandTotalPlanned += plannerTasks.length; grandTotalActual += doneTasks.length;
+
+                const progressColor = overallRate >= 80 ? 'bg-emerald-500' : (overallRate >= 50 ? 'bg-amber-500' : 'bg-rose-500');
+                const rateTextColor = overallRate >= 80 ? 'text-emerald-700' : (overallRate >= 50 ? 'text-amber-700' : 'text-rose-700');
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/50 transition border-b border-slate-100">
                         <td class="py-3 px-6 font-bold text-slate-900">${pName}</td>
-                        <td class="py-3 px-6 text-slate-500"><span class="font-semibold text-slate-700 text-[10px]">${pType}</span><span class="text-[9px] text-slate-400 ml-1">(${getPlannerArea(pName)})</span></td>
-                        <td class="py-3 px-6 text-center font-bold text-slate-700">${plannerTasks.length}</td>
-                        <td class="py-3 px-6 text-center font-bold text-emerald-600">${doneTasks.length}</td>
-                        <td class="py-3 px-6"><div class="flex items-center space-x-2"><div class="w-28 bg-slate-100 rounded-full h-1.5"><div class="${progressColor} h-1.5 rounded-full" style="width: ${rate}%"></div></div><span class="font-bold text-slate-800 text-[10px]">${rate}%</span></div></td>
+                        <td class="py-3 px-4 text-slate-400 font-medium text-[10px]">${getPlannerArea(pName)}</td>
+                        <td class="py-3 px-4 text-center border-l border-slate-100 font-semibold text-slate-700 bg-indigo-50/10">${pmTasks.length} <span class="text-emerald-600">(${pmDone.length})</span></td>
+                        <td class="py-3 px-4 text-center text-indigo-600 font-mono font-bold bg-indigo-50/10">${pmRate}</td>
+                        <td class="py-3 px-4 text-center border-l border-slate-100 font-semibold text-slate-700 bg-orange-50/10">${cmTasks.length} <span class="text-emerald-600">(${cmDone.length})</span></td>
+                        <td class="py-3 px-4 text-center text-orange-600 font-mono font-bold bg-orange-50/10">${cmRate}</td>
+                        <td class="py-3 px-6 border-l border-slate-200 bg-slate-50/50 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <div class="w-16 bg-slate-200 rounded-full h-1.5 no-print"><div class="${progressColor} h-1.5 rounded-full" style="width: ${overallRate}%"></div></div>
+                                <span class="font-black ${rateTextColor}">${overallRate}%</span>
+                            </div>
+                        </td>
                     </tr>`;
             });
 
@@ -822,59 +740,46 @@
             tbody.innerHTML = '';
 
             let count = 0;
-
             activeDataset.forEach(item => {
-                const matchSearch = item.equip.toLowerCase().includes(searchVal) || item.activity.toLowerCase().includes(searchVal);
-                const matchPlanner = plannerVal === 'ALL' || item.planner === plannerVal;
-                const matchType = typeVal === 'ALL' || item.type === typeVal;
+                if (plannerVal !== 'ALL' && item.planner !== plannerVal) return;
+                if (typeVal !== 'ALL' && item.type !== typeVal) return;
                 
-                let matchStatus = true;    
                 const normStatus = item.status.toUpperCase().trim();
-                if (statusVal === 'DONE') matchStatus = (normStatus === 'DONE');
-                else if (statusVal === 'NOT DONE') matchStatus = (normStatus === 'NOT DONE');
+                if (statusVal === 'DONE' && normStatus !== 'DONE') return;
+                if (statusVal === 'NOT DONE' && normStatus !== 'NOT DONE') return;
+                if (!item.equip.toLowerCase().includes(searchVal) && !item.activity.toLowerCase().includes(searchVal)) return;
 
-                if (matchSearch && matchPlanner && matchType && matchStatus) {
-                    count++;
-                    let badgeStyles = "bg-slate-100 text-slate-700 border-slate-200"; 
-                    if (normStatus === 'DONE') badgeStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
-                    else if (normStatus === 'NOT DONE') badgeStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
-                    else if (normStatus === 'ONGOING') badgeStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
-                    else if (normStatus === 'FOR SCHEDULE') badgeStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
-                    
-                    const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
-                    const remarksIndicator = item.remarks ? `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 border border-rose-100 whitespace-normal break-words shadow-sm"><i class="fa-solid fa-comment-dots mr-1 flex-shrink-0 mt-0.5"></i><span>${item.remarks}</span></div>` : '';
+                count++;
+                let bStyle = "bg-slate-100 text-slate-700 border-slate-200"; 
+                if (normStatus === 'DONE') bStyle = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-bold";
+                else if (normStatus === 'NOT DONE') bStyle = "bg-rose-50 text-rose-700 border-rose-200/60 font-bold";
+                else if (normStatus === 'ONGOING') bStyle = "bg-amber-50 text-amber-700 border-amber-200/60 font-bold";
+                else if (normStatus === 'FOR SCHEDULE') bStyle = "bg-blue-50 text-blue-700 border-blue-200/60 font-bold";
+                
+                const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
+                const rems = item.remarks ? `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 border border-rose-100 whitespace-normal shadow-sm"><i class="fa-solid fa-comment-dots mr-1"></i><span>${item.remarks}</span></div>` : '';
 
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
-                            <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[10px] whitespace-nowrap">${count}</td>
-                            <td class="py-2.5 px-3 font-bold text-slate-900 tracking-tight whitespace-nowrap">${item.equip}</td>
-                            <td class="py-2.5 px-3 font-semibold text-slate-700 whitespace-nowrap">${item.planner}</td>
-                            <td class="py-2.5 px-2 text-center whitespace-nowrap"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
-                            <td class="py-2.5 px-4 min-w-[200px] max-w-xs text-slate-600 whitespace-normal break-words">
-                                <div class="font-medium" title="${item.activity}">${item.activity}</div>
-                                ${remarksIndicator}
-                            </td>
-                            <td class="py-2.5 px-3 text-slate-500 font-medium whitespace-nowrap">${item.date}</td>
-                            <td class="py-2.5 px-2 font-mono text-slate-500 whitespace-nowrap">${item.duration}</td>
-                            <td class="py-2.5 px-3 text-slate-500 font-medium min-w-[120px] max-w-[180px] whitespace-normal break-words">${item.info}</td>
-                            <td class="py-2.5 px-3 text-slate-500 font-semibold whitespace-nowrap">${item.loc}</td>
-                            <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" class="px-2.5 py-1 text-[10px] rounded-full border shadow-sm tracking-wide font-bold uppercase transition active:scale-95 hover:brightness-95 ${badgeStyles}">
-                                    ${item.status}
-                                </button>
-                            </td>
-                            <td class="py-2.5 px-2 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center space-x-1">
-                                    <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                    <button onclick="deleteTask('${currentlySelectedWeek}', ${item.no})" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`;
-                }
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
+                        <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
+                        <td class="py-2.5 px-3 font-bold text-slate-900">${item.equip}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-700">${item.planner}</td>
+                        <td class="py-2.5 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
+                        <td class="py-2.5 px-4 text-slate-600 whitespace-normal break-words"><div>${item.activity}</div>${rems}</td>
+                        <td class="py-2.5 px-3 text-slate-500 font-medium">${item.date}</td>
+                        <td class="py-2.5 px-2 font-mono text-slate-500">${item.duration}</td>
+                        <td class="py-2.5 px-3 text-slate-500 font-medium whitespace-normal break-words">${item.info}</td>
+                        <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
+                        <td class="py-2.5 px-3 text-center">
+                            <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" class="px-2.5 py-1 text-[10px] rounded-full border shadow-sm uppercase font-bold transition active:scale-95 ${bStyle}">${item.status}</button>
+                        </td>
+                        <td class="py-2.5 px-2 text-center">
+                            <div class="flex items-center justify-center space-x-1">
+                                <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" class="p-1 text-slate-400 hover:text-blue-600 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteTask('${currentlySelectedWeek}', ${item.no})" class="p-1 text-slate-400 hover:text-rose-600 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
             });
             document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
         }
@@ -884,18 +789,12 @@
             const item = taskList.find(t => t.no === taskNo);
             if (!item) return;
 
-            document.getElementById('edit-week').value = weekStr;
-            document.getElementById('edit-no').value = taskNo;
-            document.getElementById('edit-row-id').value = item.id || ""; 
-            document.getElementById('edit-equip').value = item.equip;
-            document.getElementById('edit-type').value = item.type;
-            document.getElementById('edit-planner').value = item.planner;
-            document.getElementById('edit-status').value = item.status;
-            document.getElementById('edit-activity').value = item.activity;
-            document.getElementById('edit-date').value = item.date;
-            document.getElementById('edit-duration').value = item.duration;
-            document.getElementById('edit-loc').value = item.loc;
-            document.getElementById('edit-info').value = item.info;
+            document.getElementById('edit-week').value = weekStr; document.getElementById('edit-no').value = taskNo;
+            document.getElementById('edit-row-id').value = item.id || ""; document.getElementById('edit-equip').value = item.equip;
+            document.getElementById('edit-type').value = item.type; document.getElementById('edit-planner').value = item.planner;
+            document.getElementById('edit-status').value = item.status; document.getElementById('edit-activity').value = item.activity;
+            document.getElementById('edit-date').value = item.date; document.getElementById('edit-duration').value = item.duration;
+            document.getElementById('edit-loc').value = item.loc; document.getElementById('edit-info').value = item.info;
             document.getElementById('edit-remarks').value = item.remarks || "";
 
             toggleRemarksFieldVisibility(item.status);
@@ -904,10 +803,7 @@
 
         function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
 
-        window.onload = function() {
-            loadDatabaseFromCloud();
-            switchTab('kpi');
-        };
+        window.onload = function() { loadDatabaseFromCloud(); switchTab('kpi'); };
     </script>
 </body>
 </html>
