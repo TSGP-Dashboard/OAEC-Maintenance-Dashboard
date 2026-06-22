@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet & Equipment Maintenance Dashboard</title>
+    <title>OAEC MAINTENANCE DASHBOARD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,13 +24,13 @@
                     <i class="fa-solid fa-screwdriver-wrench text-slate-900 text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-[11px] text-white tracking-wide uppercase">OAEC Heavy Fleet</h1>
-                    <p class="text-[9px] text-emerald-400 font-medium tracking-tight">Maintenance Ops Matrix</p>
+                    <h1 class="font-bold text-[11px] text-white tracking-wide uppercase">WEEKLY MAINTENANCE PLAN</h1>
+                    <p class="text-[9px] text-emerald-400 font-medium tracking-tight">TSG & PLANNING DEPT</p>
                 </div>
             </div>
             
             <div class="p-3">
-                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1.5">Main Panels</p>
+                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1.5">MENU</p>
                 <nav class="space-y-1">
                     <button id="btn-kpi" onclick="switchTab('kpi')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 shadow-sm transition-all duration-150">
                         <div class="flex items-center space-x-2.5">
@@ -41,7 +41,7 @@
                     </button>
                     <button id="btn-input-form" onclick="switchTab('input-form')" class="w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150">
                         <i class="fa-solid fa-square-plus text-xs mr-2.5 opacity-70"></i>
-                        <span>Data Input Matrix</span>
+                        <span>Data Input</span>
                     </button>
                 </nav>
             </div>
@@ -50,7 +50,7 @@
                 <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-2">Operational Calendars</p>
                 <div class="px-2">
                     <select id="sidebar-week-select" onchange="if(this.value) switchTab('week-'+this.value)" class="w-full bg-[#131e19] border border-emerald-900/60 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-[#ffcc00] transition">
-                        <option value="" disabled selected>Select an Operational Week Plan...</option>
+                        <option value="" disabled selected>Select Operational Week Plan...</option>
                     </select>
                 </div>
             </div>
@@ -83,7 +83,7 @@
                 <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm tracking-tight">Weekly Compliance Metrics</h3>
-                        <p class="text-slate-500 text-[10px] mt-0.5">Summary tracking percentage rate per assigned scheduler segment</p>
+                        <p class="text-slate-500 text-[10px] mt-0.5">Summary tracking percentage rate per assigned Planner segment</p>
                     </div>
                     <div class="w-64">
                         <select id="kpi-week-select" onchange="renderKPITable(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm"></select>
@@ -100,7 +100,7 @@
                     </div>
                     <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
                         <div>
-                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Completed Matrix Rows</p>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Completed</p>
                             <h4 id="stat-actual" class="text-2xl font-black text-emerald-600 mt-1 tracking-tight">0</h4>
                         </div>
                         <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-circle-check text-sm"></i></div>
@@ -126,7 +126,7 @@
                                 <th class="py-2.5 px-6">Scope / Asset Segment</th>
                                 <th class="py-2.5 px-6 text-center">Planned</th>
                                 <th class="py-2.5 px-6 text-center">Actual Done</th>
-                                <th class="py-2.5 px-6">Completion Rate Bar</th>
+                                <th class="py-2.5 px-6">Percentage</th>
                             </tr>
                         </thead>
                         <tbody id="kpi-table-body"></tbody>
@@ -151,7 +151,7 @@
                             <input type="text" id="form-equip" required placeholder="e.g. CR-08" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-bold uppercase text-slate-800 focus:outline-none focus:border-emerald-600 transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Assigned Planner</label>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Planner</label>
                             <select id="form-planner" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                                 <option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option>
                             </select>
@@ -197,7 +197,7 @@
                         </div>
                         <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-slate-800 transition-all active:scale-98 flex items-center justify-center space-x-2 h-[34px]">
                             <i class="fa-solid fa-cloud-arrow-up text-[11px] text-emerald-400"></i>
-                            <span>Commit Matrix Row</span>
+                            <span>SAVE</span>
                         </button>
                     </div>
                 </form>
