@@ -73,7 +73,7 @@
             <div class="flex items-center space-x-4">
                 <div class="flex items-center bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-[10px] font-medium text-slate-600">
                     <span class="text-slate-400 mr-1.5 font-normal">Active Server Target:</span>
-                    <span class="font-mono text-slate-800 bg-slate-200/50 px-1 py-0.5 rounded text-[9px]">Google Drive API</span>
+                    <span class="font-mono text-slate-800 bg-slate-200/50 px-1 py-0.5 rounded text-[9px]">SheetDB API Endpoints</span>
                 </div>
             </div>
         </header>
@@ -138,7 +138,7 @@
                 <form id="task-entry-form" onsubmit="handleFormSubmit(event)" class="col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
                     <div class="border-b border-slate-100 pb-2 mb-1">
                         <h3 class="font-bold text-slate-800 text-sm tracking-tight">Insert Maintenance Record Row</h3>
-                        <p class="text-slate-400 text-[10px]">Populates new entry rows straight inside your Google Drive spreadsheet database.</p>
+                        <p class="text-slate-400 text-[10px]">Populates new entry rows straight inside your cloud spreadsheet database.</p>
                     </div>
                     
                     <div class="grid grid-cols-4 gap-4">
@@ -252,7 +252,7 @@
                                     <th class="py-2.5 px-2">Duration</th>
                                     <th class="py-2.5 px-3">Parts / Info Status</th>
                                     <th class="py-2.5 px-3">Location</th>
-                                    <th class="py-2.5 px-2 text-center">Current Status</th>
+                                    <th class="py-2.5 px-3 text-center">Current Status</th>
                                     <th class="py-2.5 px-2 text-center w-16">Actions</th>
                                 </tr>
                             </thead>
@@ -466,11 +466,10 @@
         function handleEditFormSubmit(event) {
             event.preventDefault();
             const weekStr = document.getElementById('edit-week').value;
-            const originalActivity = document.getElementById('edit-orig-activity').value;
-            const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
+            const originalActivity = encodeURIComponent(document.getElementById('edit-orig-activity').value);
 
             const updatedData = {
-                "Equipment No": equipmentCode,
+                "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
                 "Type": document.getElementById('edit-type').value,
                 "Assigned Planner": document.getElementById('edit-planner').value,
                 "Current Status": document.getElementById('edit-status').value,
@@ -482,16 +481,10 @@
                 "Remarks": document.getElementById('edit-remarks').value
             };
 
-            // Using clean global PUT update by query object to bypass url breaks
-            fetch(SHEETDB_API_URL, {
+            fetch(`${SHEETDB_API_URL}/Activity%20Description/${originalActivity}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    query: {
-                        "Week": weekStr,
-                        "Equipment No": equipmentCode,
-                        "Activity Description": originalActivity
-                    },
                     data: updatedData
                 })
             })
@@ -502,71 +495,23 @@
             });
         }
 
-      function updateTaskStatusDropdown(weekStr, taskNo, selectedStatus) {
-    const taskList = database.schedules[weekStr] || [];
-    const foundTask = taskList.find(t => t.no === taskNo);
-    
-    if (foundTask) {
-        // Safe URL encoding for special text characters like spaces, hashes, or ampersands
-        const targetValue = encodeURIComponent(foundTask.activity);
-        
-        // SheetDB PUT structure: URL/API_ID/{column_name}/{value}
-        fetch(`${SHEETDB_API_URL}/Activity%20Description/${targetValue}`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                data: { "Current Status": selectedStatus }
+        function deleteTask(weekStr, taskNo) {
+            if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
+
+            const taskList = database.schedules[weekStr] || [];
+            const item = taskList.find(t => t.no === taskNo);
+            if (!item) return;
+
+            const targetValue = encodeURIComponent(item.activity);
+
+            fetch(`${SHEETDB_API_URL}/Activity%20Description/${targetValue}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
             })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error(`Server returned code ${res.status}`);
-            return res.json();
-        })
-        .then(() => {
-            console.log("Status updated successfully.");
-            loadDatabaseFromCloud(); // Refresh the counts and layout metrics dynamically
-        })
-        .catch(err => {
-            console.error("Update failed:", err);
-            alert("Synchronization failed. Could not update cell state.");
-        });
-    }
-}
-
-      function deleteTask(weekStr, taskNo) {
-    if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
-
-    const taskList = database.schedules[weekStr] || [];
-    const item = taskList.find(t => t.no === taskNo);
-    if (!item) return;
-
-    // Encode variables cleanly to handle spaces, hashes, and ampersands in text values
-    const targetValue = encodeURIComponent(item.activity);
-
-    // SheetDB DELETE structure: URL/API_ID/{column_name}/{value}
-    fetch(`${SHEETDB_API_URL}/Activity%20Description/${targetValue}`, {
-        method: 'DELETE',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            .then(res => res.json())
+            .then(() => loadDatabaseFromCloud());
         }
-    })
-    .then(res => {
-        if (!res.ok) throw new Error(`Status code: ${res.status}`);
-        return res.json();
-    })
-    .then(result => {
-        console.log("Delete response:", result);
-        loadDatabaseFromCloud(); // Refresh UI view matrix
-    })
-    .catch(err => {
-        console.error("Delete sequence sync failed:", err);
-        alert("Could not remove line item from the remote spreadsheet cloud database.");
-    });
-}
+
         function importCSVFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -833,11 +778,11 @@
 
                 if (matchSearch && matchPlanner && matchType && matchStatus) {
                     count++;
-                    let bgStyles = "bg-slate-100 text-slate-700 border-slate-200"; 
-                    if (normStatus === 'DONE') bgStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
-                    else if (normStatus === 'NOT DONE') bgStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
-                    else if (normStatus === 'ONGOING') bgStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
-                    else if (normStatus === 'FOR SCHEDULE') bgStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
+                    let badgeStyles = "bg-slate-100 text-slate-700 border-slate-200"; 
+                    if (normStatus === 'DONE') badgeStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
+                    else if (normStatus === 'NOT DONE') badgeStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
+                    else if (normStatus === 'ONGOING') badgeStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
+                    else if (normStatus === 'FOR SCHEDULE') badgeStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
                     
                     const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
 
@@ -857,13 +802,10 @@
                             <td class="py-2.5 px-2 font-mono text-slate-500">${item.duration}</td>
                             <td class="py-2.5 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
                             <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
-                            <td class="py-2.5 px-2 text-center">
-                                <select onchange="updateTaskStatusDropdown('${currentlySelectedWeek}', ${item.no}, this.value)" class="px-2 py-1 text-[10px] rounded-full border shadow-sm font-bold cursor-pointer focus:outline-none transition-all ${bgStyles}">
-                                    <option value="FOR SCHEDULE" ${normStatus === 'FOR SCHEDULE' ? 'selected' : ''}>• FOR SCHEDULE</option>
-                                    <option value="ONGOING" ${normStatus === 'ONGOING' ? 'selected' : ''}>• ONGOING</option>
-                                    <option value="NOT DONE" ${normStatus === 'NOT DONE' ? 'selected' : ''}>• NOT DONE</option>
-                                    <option value="DONE" ${normStatus === 'DONE' ? 'selected' : ''}>• DONE</option>
-                                </select>
+                            <td class="py-2.5 px-3 text-center">
+                                <span class="px-2.5 py-1 text-[10px] rounded-full border shadow-sm tracking-wide font-bold uppercase ${badgeStyles}">
+                                    ${item.status}
+                                </span>
                             </td>
                             <td class="py-2.5 px-2 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center space-x-1">
