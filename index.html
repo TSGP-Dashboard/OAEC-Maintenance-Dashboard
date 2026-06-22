@@ -483,7 +483,9 @@ async function loadDatabaseFromCloud() {
                 info: row["Parts Status"] || "",
                 loc: row["Location"] || "",
                 status: row["Current Status"] || "FOR SCHEDULE",
-                remarks: row["Remarks"] || ""
+                doneDate: row["DONE DATE"] || "",
+                carryOverDate: row["Carry-over date"] || "",
+                remarks: row["REASON FOR CARRY OVER"] || row["Remarks"] || ""
             });
         });
 
@@ -548,44 +550,46 @@ async function handleFormSubmit(event) {
 
 async function handleEditFormSubmit(event) {
     event.preventDefault();
-    const submitBtnSelector = '#edit-task-form button[type="submit"]';
-    const originalBtnHtml = `Commit Updates`;
-
     const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
     if (!targetIdValue) { alert("Missing standard Row unique database index ID column."); return; }
+
+    const selectedStatus = document.getElementById('edit-status').value;
+    
+    // Generate an automatic ISO date stamp (YYYY-MM-DD)
+    const todayStamp = new Date().toISOString().split('T')[0];
+    
+    let doneDateValue = "";
+    let carryOverDateValue = "";
+
+    // Automatic operational conditional rules
+    if (selectedStatus === 'DONE') {
+        doneDateValue = todayStamp;
+    } else if (selectedStatus === 'NOT DONE') {
+        carryOverDateValue = todayStamp;
+    }
 
     const updatedData = {
         "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
         "Type": document.getElementById('edit-type').value,
         "Assigned Planner": document.getElementById('edit-planner').value,
-        "Current Status": document.getElementById('edit-status').value,
+        "Current Status": selectedStatus,
         "Activity Description": document.getElementById('edit-activity').value,
         "Target Date": document.getElementById('edit-date').value,
         "Duration": document.getElementById('edit-duration').value,
         "Location": document.getElementById('edit-loc').value,
         "Parts Status": document.getElementById('edit-info').value,
-        "Remarks": document.getElementById('edit-remarks').value
+        
+        // Exact matches to your new Google Sheets columns
+        "DONE DATE": doneDateValue,
+        "Carry-over date": carryOverDateValue,
+        "REASON FOR CARRY OVER": document.getElementById('edit-remarks').value
     };
 
-    setButtonLoading(submitBtnSelector, true);
-
-    try {
-        const response = await fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
-            method: 'PUT', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: updatedData })
-        });
-        
-        if (!response.ok) throw new Error(`Server returned status: ${response.status}`);
-        
-        closeEditModal();
-        await loadDatabaseFromCloud();
-    } catch (err) {
-        console.error("Update error:", err);
-        alert("Could not update row entries in Google Sheets database.");
-    } finally {
-        setButtonLoading(submitBtnSelector, false, originalBtnHtml);
-    }
+    fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: updatedData })
+    })
+    .then(() => { closeEditModal(); loadDatabaseFromCloud(); });
 }
 
 async function deleteTask(weekStr, taskNo) {
@@ -664,25 +668,31 @@ async function carryOverNotDone() {
     
     if (notDoneTasks.length === 0) { alert("No incomplete jobs found."); return; }
     
+    const todayStamp = new Date().toISOString().split('T')[0];
+
     const payloads = notDoneTasks.map((item, idx) => ({
-        "ID": "ID-CARRY-" + Date.now() + "-" + idx, "Week": nextWeekStr, "Equipment No": item.equip,
-        "Assigned Planner": item.planner, "Type": item.type, "Activity Description": `[PRIORITY] ${item.activity}`,
-        "Target Date": `Carried from W${currentlySelectedWeek}`, "Duration": item.duration,
-        "Parts Status": item.info, "Location": item.loc, "Current Status": "NOT DONE", "Remarks": item.remarks
+        "ID": "ID-CARRY-" + Date.now() + "-" + idx, 
+        "Week": nextWeekStr, 
+        "Equipment No": item.equip,
+        "Assigned Planner": item.planner, 
+        "Type": item.type, 
+        "Activity Description": `[PRIORITY] ${item.activity}`,
+        "Target Date": `Carried from W${currentlySelectedWeek}`, 
+        "Duration": item.duration,
+        "Parts Status": item.info, 
+        "Location": item.loc, 
+        "Current Status": "NOT DONE",
+        
+        // Populate the tracking targets for your delay RCA reports
+        "DONE DATE": "",
+        "Carry-over date": todayStamp, 
+        "REASON FOR CARRY OVER": item.remarks || "Automated carry-over roll process."
     }));
 
-    try {
-        const response = await fetch(SHEETDB_API_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: payloads })
-        });
-        if (!response.ok) throw new Error();
-        currentlySelectedWeek = nextWeekStr; 
-        switchTab(`week-${nextWeekStr}`); 
-        await loadDatabaseFromCloud();
-    } catch(err) {
-        alert("Failed to roll incomplete records into next week.");
-    }
+    fetch(SHEETDB_API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: payloads })
+    }).then(() => { currentlySelectedWeek = nextWeekStr; switchTab(`week-${nextWeekStr}`); loadDatabaseFromCloud(); });
 }
 
 function syncInterfaceControls() {
