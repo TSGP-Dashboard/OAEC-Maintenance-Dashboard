@@ -532,27 +532,37 @@
             }
         }
 
-        function deleteTask(weekStr, taskNo) {
-            if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
+      function deleteTask(weekStr, taskNo) {
+    if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
 
-            const taskList = database.schedules[weekStr] || [];
-            const item = taskList.find(t => t.no === taskNo);
-            if (!item) return;
+    const taskList = database.schedules[weekStr] || [];
+    const item = taskList.find(t => t.no === taskNo);
+    if (!item) return;
 
-            // Using body criteria filtering on delete request layout to manage descriptions safely
-            fetch(SHEETDB_API_URL, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    "Week": weekStr,
-                    "Equipment No": item.equip,
-                    "Activity Description": item.activity
-                })
-            })
-            .then(res => res.json())
-            .then(() => loadDatabaseFromCloud());
+    // Encode variables cleanly to handle spaces, hashes, and ampersands in text values
+    const targetValue = encodeURIComponent(item.activity);
+
+    // SheetDB DELETE structure: URL/API_ID/{column_name}/{value}
+    fetch(`${SHEETDB_API_URL}/Activity%20Description/${targetValue}`, {
+        method: 'DELETE',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
-
+    })
+    .then(res => {
+        if (!res.ok) throw new Error(`Status code: ${res.status}`);
+        return res.json();
+    })
+    .then(result => {
+        console.log("Delete response:", result);
+        loadDatabaseFromCloud(); // Refresh UI view matrix
+    })
+    .catch(err => {
+        console.error("Delete sequence sync failed:", err);
+        alert("Could not remove line item from the remote spreadsheet cloud database.");
+    });
+}
         function importCSVFile(event) {
             const file = event.target.files[0];
             if (!file) return;
