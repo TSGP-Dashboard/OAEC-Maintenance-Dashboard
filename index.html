@@ -463,37 +463,40 @@
             });
         }
 
-        function handleEditFormSubmit(event) {
-            event.preventDefault();
-            const weekStr = document.getElementById('edit-week').value;
-            const originalActivity = encodeURIComponent(document.getElementById('edit-orig-activity').value);
+       function handleEditFormSubmit(event) {
+    event.preventDefault();
+    const weekStr = document.getElementById('edit-week').value;
+    // Switch to tracking via Equipment No to avoid updating identical activities across different machines
+    const targetEquipCode = encodeURIComponent(document.getElementById('edit-equip').value.toUpperCase());
 
-            const updatedData = {
-                "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
-                "Type": document.getElementById('edit-type').value,
-                "Assigned Planner": document.getElementById('edit-planner').value,
-                "Current Status": document.getElementById('edit-status').value,
-                "Activity Description": document.getElementById('edit-activity').value,
-                "Target Date": document.getElementById('edit-date').value,
-                "Duration": document.getElementById('edit-duration').value,
-                "Location": document.getElementById('edit-loc').value,
-                "Parts Status": document.getElementById('edit-info').value,
-                "Remarks": document.getElementById('edit-remarks').value
-            };
+    const updatedData = {
+        "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
+        "Type": document.getElementById('edit-type').value,
+        "Assigned Planner": document.getElementById('edit-planner').value,
+        "Current Status": document.getElementById('edit-status').value,
+        "Activity Description": document.getElementById('edit-activity').value,
+        "Target Date": document.getElementById('edit-date').value,
+        "Duration": document.getElementById('edit-duration').value,
+        "Location": document.getElementById('edit-loc').value,
+        "Parts Status": document.getElementById('edit-info').value,
+        "Remarks": document.getElementById('edit-remarks').value
+    };
 
-            fetch(`${SHEETDB_API_URL}/Activity%20Description/${originalActivity}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    data: updatedData
-                })
-            })
-            .then(res => res.json())
-            .then(() => {
-                closeEditModal();
-                loadDatabaseFromCloud();
-            });
-        }
+    // Updating via Equipment No matching instead of the generic activity string
+    fetch(`${SHEETDB_API_URL}/Equipment%20No/${targetEquipCode}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            data: updatedData
+        })
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeEditModal();
+        loadDatabaseFromCloud();
+    })
+    .catch(err => console.error("Error updating record:", err));
+}
 
         function deleteTask(weekStr, taskNo) {
             if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
