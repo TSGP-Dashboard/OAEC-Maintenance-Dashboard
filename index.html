@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OAEC MAINTENANCE PLAN</title>
+    <title>Fleet & Equipment Maintenance Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,13 +24,13 @@
                     <i class="fa-solid fa-screwdriver-wrench text-slate-900 text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-[11px] text-white tracking-wide uppercase">WEEKLY PLAN</h1>
-                    <p class="text-[9px] text-emerald-400 font-medium tracking-tight">OAEC</p>
+                    <h1 class="font-bold text-[11px] text-white tracking-wide uppercase">OAEC Heavy Fleet</h1>
+                    <p class="text-[9px] text-emerald-400 font-medium tracking-tight">Maintenance Ops Matrix</p>
                 </div>
             </div>
             
             <div class="p-3">
-                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1.5">MENU</p>
+                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1.5">Main Panels</p>
                 <nav class="space-y-1">
                     <button id="btn-kpi" onclick="switchTab('kpi')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 shadow-sm transition-all duration-150">
                         <div class="flex items-center space-x-2.5">
@@ -197,7 +197,7 @@
                         </div>
                         <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-slate-800 transition-all active:scale-98 flex items-center justify-center space-x-2 h-[34px]">
                             <i class="fa-solid fa-cloud-arrow-up text-[11px] text-emerald-400"></i>
-                            <span>Save</span>
+                            <span>Commit Matrix Row</span>
                         </button>
                     </div>
                 </form>
@@ -281,6 +281,7 @@
             <form id="edit-task-form" onsubmit="handleEditFormSubmit(event)" class="p-5 space-y-4">
                 <input type="hidden" id="edit-week">
                 <input type="hidden" id="edit-no">
+                <input type="hidden" id="edit-orig-activity">
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Equipment Code</label>
@@ -446,10 +447,7 @@
             event.preventDefault();
             const weekStr = document.getElementById('edit-week').value;
             const taskNo = parseInt(document.getElementById('edit-no').value);
-
-            const taskList = database.schedules[weekStr] || [];
-            const item = taskList.find(t => t.no === taskNo);
-            if (!item) return;
+            const originalActivity = document.getElementById('edit-orig-activity').value;
 
             const updatedData = {
                 "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
@@ -463,11 +461,11 @@
                 "Parts Status": document.getElementById('edit-info').value
             };
 
-            fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
+            // FIX: We now find by the unique 'Activity Description' column instead of overwriting the whole week!
+            fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(originalActivity)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    condition: { "Equipment No": item.equip, "Activity Description": item.activity },
                     data: updatedData
                 })
             })
@@ -489,11 +487,11 @@
                 else if (cur === "NOT DONE") nextStatus = "ONGOING";
                 else if (cur === "ONGOING") nextStatus = "FOR SCHEDULE";
 
-                fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
+                // FIX: We target the precise row's Activity Description
+                fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(foundTask.activity)}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        condition: { "Equipment No": foundTask.equip, "Activity Description": foundTask.activity },
                         data: { "Current Status": nextStatus }
                     })
                 })
@@ -509,12 +507,10 @@
             const item = taskList.find(t => t.no === taskNo);
             if (!item) return;
 
-            fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
+            // FIX: Target via the unique activity column for deletion safety
+            fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(item.activity)}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    condition: { "Equipment No": item.equip, "Activity Description": item.activity }
-                })
+                headers: { 'Content-Type': 'application/json' }
             })
             .then(res => res.json())
             .then(() => loadDatabaseFromCloud());
@@ -591,7 +587,7 @@
                 fetch(SHEETDB_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: payloads })
+                    body: JSON.stringify({ data: [payloads] })
                 })
                 .then(res => res.json())
                 .then(() => {
@@ -831,6 +827,7 @@
 
             document.getElementById('edit-week').value = weekStr;
             document.getElementById('edit-no').value = taskNo;
+            document.getElementById('edit-orig-activity').value = item.activity; // Store original tracking key
             document.getElementById('edit-equip').value = item.equip;
             document.getElementById('edit-type').value = item.type;
             document.getElementById('edit-planner').value = item.planner;
