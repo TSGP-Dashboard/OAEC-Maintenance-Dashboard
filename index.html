@@ -430,9 +430,37 @@
             return `(${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)})`;
         }
 
-        function commitToStorage() {
-            localStorage.setItem('maintex_db', JSON.stringify(database));
-            syncInterfaceControls();
+       function commitToStorage() {
+    // Instead of local storage, send the data to your Google Sheet API
+    fetch('https://sheetdb.io/api/v1/YOUR_API_ID_HERE', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            data: [
+                {
+                    "Week": document.getElementById('form-week').value,
+                    "Equipment No": document.getElementById('form-equip').value,
+                    "Assigned Planner": document.getElementById('form-planner').value,
+                    "Type": document.getElementById('form-type').value,
+                    "Activity Description": document.getElementById('form-activity').value,
+                    "Target Date": document.getElementById('form-date').value,
+                    "Duration": document.getElementById('form-duration').value,
+                    "Parts Status": document.getElementById('form-parts').value,
+                    "Location": document.getElementById('form-location').value,
+                    "Current Status": "NOT DONE"
+                }
+            ]
+        })
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        alert("Success! The record was saved directly into the Google Sheet.");
+        location.reload(); // Refresh the screen to display the update
+    });
+}
         }
 
         function carryOverNotDone() {
