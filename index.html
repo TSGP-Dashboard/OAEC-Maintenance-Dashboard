@@ -497,31 +497,41 @@
             });
         }
 
-        function toggleTaskStatus(weekStr, taskNo) {
+       function toggleTaskStatus(weekStr, taskNo) {
     const taskList = database.schedules[weekStr] || [];
     const foundTask = taskList.find(t => t.no === taskNo);
     
     if (foundTask) {
-        // Clean up formatting to guarantee string checks match flawlessly
+        // 1. Cycle the states smoothly
         const cur = foundTask.status.trim().toUpperCase();
         let nextStatus = "FOR SCHEDULE";
 
-        // Structured step-by-step cycle tracking
         if (cur === "FOR SCHEDULE") nextStatus = "ONGOING";
         else if (cur === "ONGOING") nextStatus = "DONE";
         else if (cur === "DONE") nextStatus = "NOT DONE";
         else if (cur === "NOT DONE") nextStatus = "FOR SCHEDULE";
 
-        // Update SheetDB with precise search selectors
-        fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`, {
+        // 2. Format a compliant SheetDB single-column patch route
+        // We target the row using its unique "Activity Description"
+        const targetColumn = "Activity Description";
+        const targetValue = encodeURIComponent(foundTask.activity);
+
+        fetch(`${SHEETDB_API_URL}/${targetColumn}/${targetValue}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 data: { "Current Status": nextStatus }
             })
         })
-        .then(res => res.json())
-        .then(() => loadDatabaseFromCloud());
+        .then(res => {
+            if (!res.ok) throw new Error(`Server returned status code ${res.status}`);
+            return res.json();
+        })
+        .then(() => {
+            // Refresh instantly on screen
+            loadDatabaseFromCloud();
+        })
+        .catch(err => console.error("Status cycle network update failed:", err));
     }
 }
 
