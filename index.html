@@ -792,10 +792,10 @@
                 const matchPlanner = plannerVal === 'ALL' || item.planner === plannerVal;
                 const matchType = typeVal === 'ALL' || item.type === typeVal;
                 
-                let matchStatus = true;
-                const normStatus = item.status.toUpperCase();
-                if (statusVal === 'DONE') matchStatus = normStatus.includes('DONE');
-                else if (statusVal === 'NOT DONE') matchStatus = normStatus === 'NOT DONE';
+                let matchStatus = true;    
+                const normStatus = item.status.toUpperCase().trim();
+                if (statusVal === 'DONE') matchStatus = (normStatus === 'DONE');
+                else if (statusVal === 'NOT DONE') matchStatus = (normStatus === 'NOT DONE');
 
                 if (matchSearch && matchPlanner && matchType && matchStatus) {
                     count++;
