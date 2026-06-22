@@ -1,12 +1,14 @@
 <script>
-        // ====== LIVE DATABASE CONNECTOR CONFIGURATION ======
-        const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/p428lre6grrmb'; 
+        // ====== LIVE SHEETDB DATABASE CONFIGURATION ======
+        const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/p428lre6grrmb';
 
         let activeTab = 'kpi';
         let currentlySelectedWeek = '23';
+        
+        // This memory layer will be completely hydrated from SheetDB on load
         let database = { schedules: {}, kpi: {} };
 
-        // Helper function to dynamically map planner areas
+        // Helper function for sector matching
         function getPlannerArea(pName) {
             if (pName === "PHILIP") return "Preventive Scope";
             if (pName === "LEO") return "Workshop Yard";
@@ -16,7 +18,7 @@
             return "Tyre Logs";
         }
 
-        // Helper to format date ranges for weeks
+        // Helper to translate dynamic operational timestamps
         function getWeekDateRange(weekStr) {
             const weekNum = parseInt(weekStr);
             if (isNaN(weekNum)) return "";
@@ -30,18 +32,18 @@
             return `(${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)})`;
         }
 
-        // 1. Fetch live records from Google Sheets instead of reading local storage
+        // 1. Core Synchronization Engine (Fetch records on load/update loops)
         function loadDatabaseFromCloud() {
             fetch(SHEETDB_API_URL)
             .then(response => response.json())
             .then(data => {
-                // Reset local memory structures
+                // Clear local states
                 database.schedules = {};
                 database.kpi = {};
 
                 if (!Array.isArray(data)) return;
 
-                // Group spreadsheet rows into their matching week plans
+                // Group structural row data arrays into their corresponding operational week channels
                 data.forEach((row) => {
                     const w = row["Week"] ? row["Week"].toString().trim() : "23";
                     if (!database.schedules[w]) database.schedules[w] = [];
@@ -60,17 +62,16 @@
                     });
                 });
 
-                // Regenerate scorecard metrics for all found weeks
+                // Generate KPIs for all active weeks found in the spreadsheet data
                 const allWeeks = Object.keys(database.schedules);
                 if (allWeeks.length === 0) {
-                    // Fallback to defaults if sheet is empty
-                    allWeeks.push("22", "23", "24");
+                    allWeeks.push("22", "23", "24"); // Fallback defaults
                     database.schedules["23"] = [];
                 }
                 
                 allWeeks.forEach(w => recalculateKPIsForWeek(w));
 
-                // Refresh interface items
+                // Sync interface view controls
                 syncInterfaceControls();
                 
                 if (activeTab === 'kpi') {
@@ -82,7 +83,7 @@
             .catch(err => console.error("Cloud synchronization engine error:", err));
         }
 
-        // 2. Insert Form Entry as a New Row in Google Sheets
+        // 2. Add New Task Row
         function handleFormSubmit(event) {
             event.preventDefault();
             const wNum = document.getElementById('form-week').value.toString().trim();
@@ -114,7 +115,7 @@
             });
         }
 
-        // 3. Update Existing Row Values inside Google Sheets using Key Query Conditions
+        // 3. Update Existing Row values via conditional tracking params
         function handleEditFormSubmit(event) {
             event.preventDefault();
             const weekStr = document.getElementById('edit-week').value;
@@ -136,7 +137,7 @@
                 "Parts Status": document.getElementById('edit-info').value
             };
 
-            // Locate matching record matching specific unique constraint values to update
+            // SheetDB PATCH operation uses specific matching conditions to target rows
             fetch(`${SHEETDB_API_URL}/Week/${weekStr}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -152,7 +153,7 @@
             });
         }
 
-        // 4. State Modification Loop for Interactive Status Badges
+        // 4. Multi-state loop toggle for layout status badge buttons
         function toggleTaskStatus(weekStr, taskNo) {
             const taskList = database.schedules[weekStr] || [];
             const foundTask = taskList.find(t => t.no === taskNo);
@@ -177,9 +178,9 @@
             }
         }
 
-        // 5. Remove Target Rows Globally from Spreadsheet Database
+        // 5. Delete Target Row globally from Spreadsheet Data logs
         function deleteTask(weekStr, taskNo) {
-            if (!confirm("Are you sure you want to permanently delete this maintenance record row from Google Drive?")) return;
+            if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
 
             const taskList = database.schedules[weekStr] || [];
             const item = taskList.find(t => t.no === taskNo);
@@ -196,252 +197,7 @@
             .then(() => loadDatabaseFromCloud());
         }
 
-        // 6. Carry Over "Not Done" Items to the Next Sequence Week Pipeline
-        function carryOverNotDone() {
-            const currentWeekNum = parseInt(currentlySelectedWeek);
-            if (isNaN(currentWeekNum)) return;
-            const nextWeekStr = (currentWeekNum + 1).toString();
-            
-            const currentTasks = database.schedules[currentlySelectedWeek] || [];
-            const notDoneTasks = currentTasks.filter(t => t.status.trim().toUpperCase() === "NOT DONE");
-            
-            if (notDoneTasks.length === 0) {
-                alert(`No "NOT DONE" equipment tasks found in Week ${currentlySelectedWeek} to carry over.`);
-                return;
-            }
-            
-            const payloads = notDoneTasks.map(item => {
-                const priorityPrefix = "[PRIORITY]";
-                return {
-                    "Week": nextWeekStr,
-                    "Equipment No": item.equip,
-                    "Assigned Planner": item.planner,
-                    "Type": item.type,
-                    "Activity Description": item.activity.startsWith(priorityPrefix) ? item.activity : `${priorityPrefix} ${item.activity}`,
-                    "Target Date": `Carried from W${currentlySelectedWeek}`,
-                    "Duration": item.duration,
-                    "Parts Status": item.info,
-                    "Location": item.loc,
-                    "Current Status": "NOT DONE"
-                };
-            });
-
-            fetch(SHEETDB_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: payloads })
-            })
-            .then(res => res.json())
-            .then(() => {
-                alert(`Carried over ${notDoneTasks.length} unfinished items into Week ${nextWeekStr} successfully.`);
-                currentlySelectedWeek = nextWeekStr;
-                switchTab(`week-${nextWeekStr}`);
-                loadDatabaseFromCloud();
-            });
-        }
-
-        // ====== CORE KPI CALCULATOR ENGINE ======
-        function recalculateKPIsForWeek(weekStr) {
-            const planners = ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"];
-            database.kpi[weekStr] = planners.map(pName => {
-                const plannerTasks = (database.schedules[weekStr] || []).filter(t => t.planner === pName);
-                const doneTasks = plannerTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
-                const rate = plannerTasks.length > 0 ? parseFloat(((doneTasks.length / plannerTasks.length) * 100).toFixed(1)) : 0.0;
-                return { 
-                    name: pName, 
-                    type: plannerTasks[0]?.type || (pName === "PHILIP" ? "PMS" : "CM"), 
-                    planned: plannerTasks.length, 
-                    actual: doneTasks.length, 
-                    rate: rate, 
-                    area: getPlannerArea(pName) 
-                };
-            });
-        }
-
-        // ====== RENDERING & APPLICATION WINDOW INTERACTION MANAGEMENT ======
-        function syncInterfaceControls() {
-            const sidebarSelect = document.getElementById('sidebar-week-select');
-            const kpiSelect = document.getElementById('kpi-week-select');
-            const scheduleSelect = document.getElementById('schedule-week-select');
-            
-            const allWeeks = new Set([...Object.keys(database.schedules), "22", "23", "24"]);
-            const sortedWeeks = Array.from(allWeeks).sort((a, b) => parseInt(a) - parseInt(b));
-
-            kpiSelect.innerHTML = '';
-            sortedWeeks.forEach(w => {
-                kpiSelect.innerHTML += `<option value="${w}">Week ${w} Scorecard ${getWeekDateRange(w)}</option>`;
-            });
-            kpiSelect.value = currentlySelectedWeek;
-
-            if (scheduleSelect) {
-                scheduleSelect.innerHTML = '';
-                sortedWeeks.forEach(w => {
-                    scheduleSelect.innerHTML += `<option value="${w}">Week ${w} Data Grid ${getWeekDateRange(w)}</option>`;
-                });
-                scheduleSelect.value = currentlySelectedWeek;
-            }
-
-            sidebarSelect.innerHTML = '<option value="" disabled selected>Select an Operational Week Plan...</option>';
-            sortedWeeks.forEach(w => {
-                sidebarSelect.innerHTML += `<option value="${w}">Week ${w} Schedule ${getWeekDateRange(w)}</option>`;
-            });
-            if (activeTab.startsWith('week-')) sidebarSelect.value = activeTab.replace('week-', '');
-        }
-
-        function switchTab(target) {
-            activeTab = target;
-            const btnKpi = document.getElementById('btn-kpi');
-            const btnInput = document.getElementById('btn-input-form');
-
-            if(target === 'kpi') {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-900 transition";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
-            } else if (target === 'input-form') {
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-900 transition";
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
-            } else {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
-            }
-
-            document.getElementById('panel-kpi').classList.add('hidden');
-            document.getElementById('panel-input-form').classList.add('hidden');
-            document.getElementById('panel-schedules').classList.add('hidden');
-
-            if (target === 'kpi') {
-                document.getElementById('panel-kpi').classList.remove('hidden');
-                document.getElementById('view-header-title').innerText = "Compliance Overview Metrics";
-                renderKPITable(currentlySelectedWeek);
-            } else if (target === 'input-form') {
-                document.getElementById('panel-input-form').classList.remove('hidden');
-                document.getElementById('view-header-title').innerText = "Data Input Matrix Entry";
-            } else if (target.startsWith('week-')) {
-                const weekNum = target.replace('week-', '');
-                currentlySelectedWeek = weekNum;
-                document.getElementById('panel-schedules').classList.remove('hidden');
-                document.getElementById('view-header-title').innerText = `Operational Schedule — Week ${weekNum}`;
-                applyFilters();
-            }
-            syncInterfaceControls();
-        }
-
-        function renderKPITable(weekNum) {
-            currentlySelectedWeek = weekNum.toString();
-            document.getElementById('kpi-table-week-indicator').innerText = `Week ${weekNum} Metrics ${getWeekDateRange(currentlySelectedWeek)}`;
-            document.getElementById('header-week-indicator').innerText = `Active: Week ${weekNum} Matrix`;
-
-            const targetArray = database.kpi[currentlySelectedWeek] || [];
-            const tbody = document.getElementById('kpi-table-body');
-            tbody.innerHTML = '';
-
-            let grandTotalPlanned = 0, grandTotalActual = 0;
-
-            targetArray.forEach(row => {
-                grandTotalPlanned += row.planned;
-                grandTotalActual += row.actual;
-                const progressColor = row.rate >= 80 ? 'bg-emerald-500' : (row.rate >= 50 ? 'bg-amber-500' : 'bg-rose-500');
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
-                        <td class="py-2.5 px-5 font-bold text-slate-900">${row.name}</td>
-                        <td class="py-2.5 px-5 text-slate-500"><span class="font-semibold text-slate-700 text-[10px]">${row.type}</span><span class="text-[9px] text-slate-400 ml-1">(${row.area})</span></td>
-                        <td class="py-2.5 px-5 text-center font-bold text-slate-700">${row.planned}</td>
-                        <td class="py-2.5 px-5 text-center font-bold text-emerald-600">${row.actual}</td>
-                        <td class="py-2.5 px-5"><div class="flex items-center space-x-2"><div class="w-28 bg-slate-100 rounded-full h-1.5"><div class="${progressColor} h-1.5 rounded-full" style="width: ${row.rate}%"></div></div><span class="font-bold text-slate-800 text-[10px]">${row.rate}%</span></div></td>
-                    </tr>`;
-            });
-
-            document.getElementById('stat-total').innerText = grandTotalPlanned;
-            document.getElementById('stat-actual').innerText = grandTotalActual;
-            document.getElementById('stat-rate').innerText = grandTotalPlanned > 0 ? ((grandTotalActual / grandTotalPlanned) * 100).toFixed(1) + "%" : "0.0%";
-        }
-
-        function applyFilters() {
-            const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
-            const plannerVal = document.getElementById('filter-planner').value;
-            const typeVal = document.getElementById('filter-type').value;
-            const statusVal = document.getElementById('filter-status').value;
-
-            const activeDataset = database.schedules[currentlySelectedWeek] || [];
-            const tbody = document.getElementById('schedule-table-body');
-            tbody.innerHTML = '';
-
-            let count = 0;
-
-            activeDataset.forEach(item => {
-                const matchSearch = item.equip.toLowerCase().includes(searchVal) || item.activity.toLowerCase().includes(searchVal);
-                const matchPlanner = plannerVal === 'ALL' || item.planner === plannerVal;
-                const matchType = typeVal === 'ALL' || item.type === typeVal;
-                
-                let matchStatus = true;
-                const normStatus = item.status.toUpperCase();
-                if (statusVal === 'DONE') matchStatus = normStatus.includes('DONE');
-                else if (statusVal === 'NOT DONE') matchStatus = normStatus === 'NOT DONE';
-
-                if (matchSearch && matchPlanner && matchType && matchStatus) {
-                    count++;
-                    let badgeStyles = "bg-slate-50 text-slate-600 border-slate-200"; 
-                    if (normStatus === 'DONE') badgeStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
-                    else if (normStatus === 'NOT DONE') badgeStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
-                    else if (normStatus === 'ONGOING') badgeStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
-                    else if (normStatus === 'FOR SCHEDULE') badgeStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
-                    
-                    const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50/80 border-b border-slate-100 transition">
-                            <td class="py-2 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
-                            <td class="py-2 px-3 font-bold text-slate-900 tracking-tight">${item.equip}</td>
-                            <td class="py-2 px-3 font-semibold text-slate-700">${item.planner}</td>
-                            <td class="py-2 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
-                            <td class="py-2 px-4 max-w-xs truncate text-slate-600" title="${item.activity}">${item.activity}</td>
-                            <td class="py-2 px-3 text-slate-500 font-medium">${item.date}</td>
-                            <td class="py-2 px-2 font-mono text-slate-500">${item.duration}</td>
-                            <td class="py-2 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
-                            <td class="py-2 px-3 text-slate-500 font-semibold">${item.loc}</td>
-                            <td class="py-2 px-2 text-center">
-                                <button onclick="toggleTaskStatus('${currentlySelectedWeek}', ${item.no})" title="Click to loop toggle completion state" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${badgeStyles} hover:scale-105 active:scale-95 transition-all shadow-sm whitespace-nowrap">
-                                    ${item.status}
-                                </button>
-                            </td>
-                            <td class="py-2 px-2 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center space-x-1">
-                                    <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Edit Row" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                    <button onclick="deleteTask('${currentlySelectedWeek}', ${item.no})" title="Delete Row" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`;
-                }
-            });
-            document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
-        }
-
-        function openEditModal(weekStr, taskNo) {
-            const taskList = database.schedules[weekStr] || [];
-            const item = taskList.find(t => t.no === taskNo);
-            if (!item) return;
-
-            document.getElementById('edit-week').value = weekStr;
-            document.getElementById('edit-no').value = taskNo;
-            document.getElementById('edit-equip').value = item.equip;
-            document.getElementById('edit-type').value = item.type;
-            document.getElementById('edit-planner').value = item.planner;
-            document.getElementById('edit-status').value = item.status;
-            document.getElementById('edit-activity').value = item.activity;
-            document.getElementById('edit-date').value = item.date;
-            document.getElementById('edit-duration').value = item.duration;
-            document.getElementById('edit-loc').value = item.loc;
-            document.getElementById('edit-info').value = item.info;
-
-            document.getElementById('edit-modal').classList.remove('hidden');
-        }
-
-        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
-
-        // Bulk CSV File Uploader Integration
+        // 6. Bulk CSV Uploader Sync Integration
         function importCSVFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -510,7 +266,6 @@
                     return;
                 }
 
-                // Push all parsed records into the live SheetDB endpoint
                 fetch(SHEETDB_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -527,9 +282,256 @@
             reader.readAsText(file);
         }
 
-        // Initialize App View Lifecycle
+        // 7. Carry Over "Not Done" Items to the next Pipeline Sequence
+        function carryOverNotDone() {
+            const currentWeekNum = parseInt(currentlySelectedWeek);
+            if (isNaN(currentWeekNum)) return;
+            const nextWeekStr = (currentWeekNum + 1).toString();
+            
+            const currentTasks = database.schedules[currentlySelectedWeek] || [];
+            const notDoneTasks = currentTasks.filter(t => t.status.trim().toUpperCase() === "NOT DONE");
+            
+            if (notDoneTasks.length === 0) {
+                alert(`No "NOT DONE" equipment tasks found in Week ${currentlySelectedWeek} to carry over.`);
+                return;
+            }
+            
+            const payloads = notDoneTasks.map(item => {
+                const priorityPrefix = "[PRIORITY]";
+                return {
+                    "Week": nextWeekStr,
+                    "Equipment No": item.equip,
+                    "Assigned Planner": item.planner,
+                    "Type": item.type,
+                    "Activity Description": item.activity.startsWith(priorityPrefix) ? item.activity : `${priorityPrefix} ${item.activity}`,
+                    "Target Date": `Carried from W${currentlySelectedWeek}`,
+                    "Duration": item.duration,
+                    "Parts Status": item.info,
+                    "Location": item.loc,
+                    "Current Status": "NOT DONE"
+                };
+            });
+
+            fetch(SHEETDB_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: payloads })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert(`Carried over ${notDoneTasks.length} unfinished items into Week ${nextWeekStr} successfully.`);
+                currentlySelectedWeek = nextWeekStr;
+                switchTab(`week-${nextWeekStr}`);
+                loadDatabaseFromCloud();
+            });
+        }
+
+        // ====== CORE METRICS KPI CALCULATOR ENGINE ======
+        function recalculateKPIsForWeek(weekStr) {
+            const planners = ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"];
+            database.kpi[weekStr] = planners.map(pName => {
+                const plannerTasks = (database.schedules[weekStr] || []).filter(t => t.planner === pName);
+                const doneTasks = plannerTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
+                const rate = plannerTasks.length > 0 ? parseFloat(((doneTasks.length / plannerTasks.length) * 100).toFixed(1)) : 0.0;
+                return { 
+                    name: pName, 
+                    type: plannerTasks[0]?.type || (pName === "PHILIP" ? "PMS" : "CM"), 
+                    planned: plannerTasks.length, 
+                    actual: doneTasks.length, 
+                    rate: rate, 
+                    area: getPlannerArea(pName) 
+                };
+            });
+        }
+
+        // ====== RENDERING & APPLICATION PANEL LIFECYCLE CONTROLS ======
+        function syncInterfaceControls() {
+            const sidebarSelect = document.getElementById('sidebar-week-select');
+            const kpiSelect = document.getElementById('kpi-week-select');
+            const scheduleSelect = document.getElementById('schedule-week-select');
+            
+            const allWeeks = new Set([...Object.keys(database.schedules), "22", "23", "24"]);
+            const sortedWeeks = Array.from(allWeeks).sort((a, b) => parseInt(a) - parseInt(b));
+
+            kpiSelect.innerHTML = '';
+            sortedWeeks.forEach(w => {
+                kpiSelect.innerHTML += `<option value="${w}">Week ${w} Scorecard ${getWeekDateRange(w)}</option>`;
+            });
+            kpiSelect.value = currentlySelectedWeek;
+
+            if (scheduleSelect) {
+                scheduleSelect.innerHTML = '';
+                sortedWeeks.forEach(w => {
+                    scheduleSelect.innerHTML += `<option value="${w}">Week ${w} Data Grid ${getWeekDateRange(w)}</option>`;
+                });
+                scheduleSelect.value = currentlySelectedWeek;
+            }
+
+            sidebarSelect.innerHTML = '<option value="" disabled selected>Select an Operational Week Plan...</option>';
+            sortedWeeks.forEach(w => {
+                sidebarSelect.innerHTML += `<option value="${w}">Week ${w} Schedule ${getWeekDateRange(w)}</option>`;
+            });
+            if (activeTab.startsWith('week-')) sidebarSelect.value = activeTab.replace('week-', '');
+        }
+
+        function switchTab(target) {
+            activeTab = target;
+            const btnKpi = document.getElementById('btn-kpi');
+            const btnInput = document.getElementById('btn-input-form');
+
+            if(target === 'kpi') {
+                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
+                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+            } else if (target === 'input-form') {
+                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
+                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+            } else {
+                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+            }
+
+            document.getElementById('panel-kpi').classList.add('hidden');
+            document.getElementById('panel-input-form').classList.add('hidden');
+            document.getElementById('panel-schedules').classList.add('hidden');
+
+            if (target === 'kpi') {
+                document.getElementById('panel-kpi').classList.remove('hidden');
+                document.getElementById('view-header-title').innerText = "Compliance Overview Metrics";
+                renderKPITable(currentlySelectedWeek);
+            } else if (target === 'input-form') {
+                document.getElementById('panel-input-form').classList.remove('hidden');
+                document.getElementById('view-header-title').innerText = "Data Input Matrix Entry";
+            } else if (target.startsWith('week-')) {
+                const weekNum = target.replace('week-', '');
+                currentlySelectedWeek = weekNum;
+                document.getElementById('panel-schedules').classList.remove('hidden');
+                document.getElementById('view-header-title').innerText = `Operational Schedule — Week ${weekNum}`;
+                applyFilters();
+            }
+            syncInterfaceControls();
+        }
+
+        function renderKPITable(weekNum) {
+            currentlySelectedWeek = weekNum.toString();
+            document.getElementById('kpi-table-week-indicator').innerText = `Week ${weekNum} Metrics ${getWeekDateRange(currentlySelectedWeek)}`;
+            document.getElementById('header-week-indicator').innerText = `Active: Week ${weekNum} Matrix`;
+
+            const targetArray = database.kpi[currentlySelectedWeek] || [];
+            const tbody = document.getElementById('kpi-table-body');
+            tbody.innerHTML = '';
+
+            let grandTotalPlanned = 0, grandTotalActual = 0;
+
+            targetArray.forEach(row => {
+                grandTotalPlanned += row.planned;
+                grandTotalActual += row.actual;
+                const progressColor = row.rate >= 80 ? 'bg-emerald-500' : (row.rate >= 50 ? 'bg-amber-500' : 'bg-rose-500');
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/50 transition border-b border-slate-100">
+                        <td class="py-3 px-6 font-bold text-slate-900">${row.name}</td>
+                        <td class="py-3 px-6 text-slate-500"><span class="font-semibold text-slate-700 text-[10px]">${row.type}</span><span class="text-[9px] text-slate-400 ml-1">(${row.area})</span></td>
+                        <td class="py-3 px-6 text-center font-bold text-slate-700">${row.planned}</td>
+                        <td class="py-3 px-6 text-center font-bold text-emerald-600">${row.actual}</td>
+                        <td class="py-3 px-6"><div class="flex items-center space-x-2"><div class="w-28 bg-slate-100 rounded-full h-1.5"><div class="${progressColor} h-1.5 rounded-full" style="width: ${row.rate}%"></div></div><span class="font-bold text-slate-800 text-[10px]">${row.rate}%</span></div></td>
+                    </tr>`;
+            });
+
+            document.getElementById('stat-total').innerText = grandTotalPlanned;
+            document.getElementById('stat-actual').innerText = grandTotalActual;
+            document.getElementById('stat-rate').innerText = grandTotalPlanned > 0 ? ((grandTotalActual / grandTotalPlanned) * 100).toFixed(1) + "%" : "0.0%";
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
+            const plannerVal = document.getElementById('filter-planner').value;
+            const typeVal = document.getElementById('filter-type').value;
+            const statusVal = document.getElementById('filter-status').value;
+
+            const activeDataset = database.schedules[currentlySelectedWeek] || [];
+            const tbody = document.getElementById('schedule-table-body');
+            tbody.innerHTML = '';
+
+            let count = 0;
+
+            activeDataset.forEach(item => {
+                const matchSearch = item.equip.toLowerCase().includes(searchVal) || item.activity.toLowerCase().includes(searchVal);
+                const matchPlanner = plannerVal === 'ALL' || item.planner === plannerVal;
+                const matchType = typeVal === 'ALL' || item.type === typeVal;
+                
+                let matchStatus = true;
+                const normStatus = item.status.toUpperCase();
+                if (statusVal === 'DONE') matchStatus = normStatus.includes('DONE');
+                else if (statusVal === 'NOT DONE') matchStatus = normStatus === 'NOT DONE';
+
+                if (matchSearch && matchPlanner && matchType && matchStatus) {
+                    count++;
+                    let badgeStyles = "bg-slate-100 text-slate-700 border-slate-200"; 
+                    if (normStatus === 'DONE') badgeStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
+                    else if (normStatus === 'NOT DONE') badgeStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
+                    else if (normStatus === 'ONGOING') badgeStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
+                    else if (normStatus === 'FOR SCHEDULE') badgeStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
+                    
+                    const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
+                            <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-900 tracking-tight">${item.equip}</td>
+                            <td class="py-2.5 px-3 font-semibold text-slate-700">${item.planner}</td>
+                            <td class="py-2.5 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
+                            <td class="py-2.5 px-4 max-w-xs truncate text-slate-600" title="${item.activity}">${item.activity}</td>
+                            <td class="py-2.5 px-3 text-slate-500 font-medium">${item.date}</td>
+                            <td class="py-2.5 px-2 font-mono text-slate-500">${item.duration}</td>
+                            <td class="py-2.5 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
+                            <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
+                            <td class="py-2.5 px-2 text-center">
+                                <button onclick="toggleTaskStatus('${currentlySelectedWeek}', ${item.no})" title="Click to loop toggle completion state" class="px-3 py-1 text-[10px] rounded-full border ${badgeStyles} hover:opacity-80 active:scale-95 transition-all shadow-sm whitespace-nowrap">
+                                    • ${item.status}
+                                </button>
+                            </td>
+                            <td class="py-2.5 px-2 text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center space-x-1">
+                                    <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Edit Row" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteTask('${currentlySelectedWeek}', ${item.no})" title="Delete Row" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                }
+            });
+            document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
+        }
+
+        function openEditModal(weekStr, taskNo) {
+            const taskList = database.schedules[weekStr] || [];
+            const item = taskList.find(t => t.no === taskNo);
+            if (!item) return;
+
+            document.getElementById('edit-week').value = weekStr;
+            document.getElementById('edit-no').value = taskNo;
+            document.getElementById('edit-equip').value = item.equip;
+            document.getElementById('edit-type').value = item.type;
+            document.getElementById('edit-planner').value = item.planner;
+            document.getElementById('edit-status').value = item.status;
+            document.getElementById('edit-activity').value = item.activity;
+            document.getElementById('edit-date').value = item.date;
+            document.getElementById('edit-duration').value = item.duration;
+            document.getElementById('edit-loc').value = item.loc;
+            document.getElementById('edit-info').value = item.info;
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+        // ====== SYSTEM INITIALIZATION VIEW LIFECYCLE ======
         window.onload = function() {
             loadDatabaseFromCloud();
             switchTab('kpi');
         };
     </script>
+</body>
+</html>
