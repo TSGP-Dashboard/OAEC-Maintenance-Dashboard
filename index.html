@@ -15,254 +15,254 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-[#f4f6f5] text-slate-800 antialiased h-screen overflow-hidden flex text-xs">
+<body class="bg-[#f4f6f5] text-slate-800 antialiased h-screen overflow-hidden flex text-[11px]">
 
-    <aside class="w-60 bg-[#18251f] flex flex-col justify-between flex-shrink-0 border-r border-emerald-950/20 text-slate-200">
+    <aside class="w-52 bg-[#18251f] flex flex-col justify-between flex-shrink-0 border-r border-emerald-950/20 text-slate-200">
         <div>
-            <div class="p-4 border-b border-emerald-900/40 bg-[#121c17] flex items-center space-x-3">
-                <div class="w-7 h-7 rounded-lg bg-[#ffcc00] flex items-center justify-center shadow-md">
-                    <i class="fa-solid fa-screwdriver-wrench text-slate-900 text-sm"></i>
+            <div class="p-3 border-b border-emerald-900/40 bg-[#121c17] flex items-center space-x-2.5">
+                <div class="w-6 h-6 rounded bg-[#ffcc00] flex items-center justify-center shadow-md flex-shrink-0">
+                    <i class="fa-solid fa-screwdriver-wrench text-slate-900 text-xs"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-[11px] text-white tracking-wide uppercase">WEEKLY MAINTENANCE PLAN</h1>
-                    <p class="text-[9px] text-emerald-400 font-medium tracking-tight">TSG & PLANNING DEPT</p>
+                    <h1 class="font-bold text-[10px] text-white tracking-wide uppercase leading-tight">WEEKLY MAINTENANCE PLAN</h1>
+                    <p class="text-[8px] text-emerald-400 font-medium tracking-tight">TSG & PLANNING DEPT</p>
                 </div>
             </div>
             
-            <div class="p-3">
-                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1.5">MENU</p>
-                <nav class="space-y-1">
-                    <button id="btn-kpi" onclick="switchTab('kpi')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 shadow-sm transition-all duration-150">
-                        <div class="flex items-center space-x-2.5">
+            <div class="p-2">
+                <p class="text-[8px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1">MENU</p>
+                <nav class="space-y-0.5">
+                    <button id="btn-kpi" onclick="switchTab('kpi')" class="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-[#ffcc00] text-slate-950 shadow-sm transition-all duration-150">
+                        <div class="flex items-center space-x-2">
                             <i class="fa-solid fa-chart-bar text-xs opacity-90"></i>
                             <span>Compliance Overview</span>
                         </div>
-                        <span id="header-week-indicator" class="text-[9px] bg-slate-950/10 px-1.5 py-0.5 rounded font-mono">W23</span>
+                        <span id="header-week-indicator" class="text-[8px] bg-slate-950/10 px-1 rounded font-mono">W23</span>
                     </button>
-                    <button id="btn-input-form" onclick="switchTab('input-form')" class="w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150">
-                        <i class="fa-solid fa-square-plus text-xs mr-2.5 opacity-70"></i>
+                    <button id="btn-input-form" onclick="switchTab('input-form')" class="w-full flex items-center px-2.5 py-1.5 text-[11px] font-medium rounded-md text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150">
+                        <i class="fa-solid fa-square-plus text-xs mr-2 opacity-70"></i>
                         <span>Data Input</span>
                     </button>
                 </nav>
             </div>
 
-            <div class="p-3 border-t border-emerald-900/30 mt-1">
-                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-2">Operational Calendars</p>
-                <div class="px-2">
-                    <select id="sidebar-week-select" onchange="if(this.value) switchTab('week-'+this.value)" class="w-full bg-[#131e19] border border-emerald-900/60 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-[#ffcc00] transition">
+            <div class="p-2 border-t border-emerald-900/30 mt-0.5">
+                <p class="text-[8px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1">Operational Calendars</p>
+                <div class="px-1">
+                    <select id="sidebar-week-select" onchange="if(this.value) switchTab('week-'+this.value)" class="w-full bg-[#131e19] border border-emerald-900/60 rounded p-1 text-[11px] text-slate-200 font-medium focus:outline-none focus:border-[#ffcc00] transition">
                         <option value="" disabled selected>Select Operational Week Plan...</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <div class="p-3 bg-[#121c17] border-t border-emerald-900/40 text-[10px] text-slate-400 flex items-center justify-between font-medium">
-            <div class="flex items-center space-x-2">
-                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span class="tracking-tight text-slate-300">Cloud Sync Active</span>
+        <div class="p-2 bg-[#121c17] border-t border-emerald-900/40 text-[9px] text-slate-400 flex items-center justify-between font-medium">
+            <div class="flex items-center space-x-1.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-slate-300">Cloud Sync Active</span>
             </div>
-            <span class="font-mono text-[9px] text-slate-500">v2.1.0</span>
+            <span class="font-mono text-[8px] text-slate-500">v2.1.0</span>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col overflow-hidden bg-[#f4f6f5]">
-        <header class="bg-white border-b border-slate-200/80 h-11 flex-shrink-0 flex items-center justify-between px-6 shadow-sm z-10">
-            <div class="flex items-center space-x-3">
-                <h2 id="view-header-title" class="font-bold text-slate-800 tracking-tight text-sm">Compliance Overview Metrics</h2>
+        <header class="bg-white border-b border-slate-200/80 h-9 flex-shrink-0 flex items-center justify-between px-4 shadow-sm z-10">
+            <div class="flex items-center space-x-2">
+                <h2 id="view-header-title" class="font-bold text-slate-800 tracking-tight text-xs">Compliance Overview Metrics</h2>
             </div>
             <div class="flex items-center space-x-4">
-                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-[10px] font-medium text-slate-600">
-                    <span class="text-slate-400 mr-1.5 font-normal">Active Server Target:</span>
-                    <span class="font-mono text-slate-800 bg-slate-200/50 px-1 py-0.5 rounded text-[9px]">SheetDB API Endpoints</span>
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                    <span class="text-slate-400 mr-1 font-normal">Active Server Target:</span>
+                    <span class="font-mono text-slate-800 bg-slate-200/50 px-1 py-0.5 rounded text-[8px]">SheetDB API Endpoints</span>
                 </div>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-5">
-            <div id="panel-kpi" class="space-y-5">
-                <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <div id="panel-kpi" class="space-y-4">
+                <div class="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-3 shadow-sm">
                     <div>
-                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Weekly Compliance Metrics</h3>
-                        <p class="text-slate-500 text-[10px] mt-0.5">Summary tracking percentage rate per assigned Planner segment</p>
+                        <h3 class="font-bold text-slate-800 text-xs tracking-tight">Weekly Compliance Metrics</h3>
+                        <p class="text-slate-500 text-[9px]">Summary tracking percentage rate per assigned Planner segment</p>
                     </div>
-                    <div class="w-64">
-                        <select id="kpi-week-select" onchange="renderKPITable(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm"></select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Planned Work Tasks</p>
-                            <h4 id="stat-total" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0</h4>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-list-check text-sm"></i></div>
-                    </div>
-                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Completed</p>
-                            <h4 id="stat-actual" class="text-2xl font-black text-emerald-600 mt-1 tracking-tight">0</h4>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-circle-check text-sm"></i></div>
-                    </div>
-                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Performance Rating</p>
-                            <h4 id="stat-rate" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0%</h4>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600"><i class="fa-solid fa-gauge-high text-sm"></i></div>
+                    <div class="w-56">
+                        <select id="kpi-week-select" onchange="renderKPITable(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[11px] font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm"></select>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                    <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-white border border-slate-200/80 rounded-lg p-3 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Planned Work Tasks</p>
+                            <h4 id="stat-total" class="text-xl font-black text-slate-800 tracking-tight">0</h4>
+                        </div>
+                        <div class="w-8 h-8 rounded bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-list-check text-xs"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-lg p-3 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Completed</p>
+                            <h4 id="stat-actual" class="text-xl font-black text-emerald-600 tracking-tight">0</h4>
+                        </div>
+                        <div class="w-8 h-8 rounded bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-circle-check text-xs"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-lg p-3 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Performance Rating</p>
+                            <h4 id="stat-rate" class="text-xl font-black text-slate-800 tracking-tight">0%</h4>
+                        </div>
+                        <div class="w-8 h-8 rounded bg-amber-50 flex items-center justify-center text-amber-600"><i class="fa-solid fa-gauge-high text-xs"></i></div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                    <div class="px-4 py-1.5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                         <span id="kpi-table-week-indicator" class="font-bold text-slate-800 tracking-tight">Week Scorecard Metrics</span>
-                        <span class="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Live Synced</span>
+                        <span class="text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-bold">Live Synced</span>
                     </div>
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="py-2.5 px-6">Assigned Planner</th>
-                                <th class="py-2.5 px-6">Scope / Asset Segment</th>
-                                <th class="py-2.5 px-6 text-center">Planned</th>
-                                <th class="py-2.5 px-6 text-center">Actual Done</th>
-                                <th class="py-2.5 px-6">Percentage</th>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[8px]">
+                                <th class="py-2 px-4">Assigned Planner</th>
+                                <th class="py-2 px-4">Scope / Asset Segment</th>
+                                <th class="py-2 px-4 text-center">Planned</th>
+                                <th class="py-2 px-4 text-center">Actual Done</th>
+                                <th class="py-2 px-4">Percentage</th>
                             </tr>
                         </thead>
-                        <tbody id="kpi-table-body"></tbody>
+                        <tbody id="kpi-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="panel-input-form" class="hidden grid grid-cols-3 gap-6 items-start">
-                <form id="task-entry-form" onsubmit="handleFormSubmit(event)" class="col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-                    <div class="border-b border-slate-100 pb-2 mb-1">
-                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Insert Maintenance Record Row</h3>
-                        <p class="text-slate-400 text-[10px]">Populates new entry rows straight inside your cloud spreadsheet database.</p>
+            <div id="panel-input-form" class="hidden grid grid-cols-3 gap-4 items-start">
+                <form id="task-entry-form" onsubmit="handleFormSubmit(event)" class="col-span-2 bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-3">
+                    <div class="border-b border-slate-100 pb-1.5">
+                        <h3 class="font-bold text-slate-800 text-xs tracking-tight">Insert Maintenance Record Row</h3>
+                        <p class="text-slate-400 text-[9px]">Populates new entry rows straight inside your cloud spreadsheet database.</p>
                     </div>
                     
-                    <div class="grid grid-cols-4 gap-4">
+                    <div class="grid grid-cols-4 gap-3">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Target Week</label>
-                            <input type="number" id="form-week" required min="1" max="53" value="23" class="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-1.5 font-bold text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Target Week</label>
+                            <input type="number" id="form-week" required min="1" max="53" value="23" class="w-full border border-slate-200 bg-slate-50 rounded px-2 py-1 font-bold text-slate-800 focus:outline-none focus:border-emerald-600 transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Equipment No</label>
-                            <input type="text" id="form-equip" required placeholder="e.g. CR-08" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-bold uppercase text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Equipment No</label>
+                            <input type="text" id="form-equip" required placeholder="e.g. CR-08" class="w-full border border-slate-200 rounded px-2 py-1 font-bold uppercase text-slate-800 focus:outline-none focus:border-emerald-600 transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Planner</label>
-                            <select id="form-planner" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Planner</label>
+                            <select id="form-planner" required class="w-full border border-slate-200 bg-white rounded px-2 py-1 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                                 <option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Scope Classification</label>
-                            <select id="form-type" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Scope Classification</label>
+                            <select id="form-type" required class="w-full border border-slate-200 bg-white rounded px-2 py-1 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                                 <option value="PM">PM (Preventive)</option><option value="CM">CM (Corrective)</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Activity Work Description</label>
-                        <textarea id="form-activity" required rows="2" placeholder="Describe the active scope details, repair assembly requirements, structural items..." class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition"></textarea>
+                        <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Activity Work Description</label>
+                        <textarea id="form-activity" required rows="2" placeholder="Describe the active scope details, repair assembly requirements, structural items..." class="w-full border border-slate-200 rounded px-2 py-1 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition"></textarea>
                     </div>
 
-                    <div class="grid grid-cols-4 gap-4">
+                    <div class="grid grid-cols-4 gap-3">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Target Date</label>
-                            <input type="text" id="form-date" placeholder="e.g. JUNE 6-11" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Target Date</label>
+                            <input type="text" id="form-date" placeholder="e.g. JUNE 6-11" class="w-full border border-slate-200 rounded px-2 py-1 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Duration</label>
-                            <input type="text" id="form-duration" placeholder="e.g. 5 HOURS" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Duration</label>
+                            <input type="text" id="form-duration" placeholder="e.g. 5 HOURS" class="w-full border border-slate-200 rounded px-2 py-1 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Parts Status</label>
-                            <input type="text" id="form-info" placeholder="e.g. ARRIVED MATERIAL" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Parts Status</label>
+                            <input type="text" id="form-info" placeholder="e.g. ARRIVED MATERIAL" class="w-full border border-slate-200 rounded px-2 py-1 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Operational Location</label>
-                            <input type="text" id="form-loc" placeholder="e.g. GEM WORKSHOP" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Operational Location</label>
+                            <input type="text" id="form-loc" placeholder="e.g. GEM WORKSHOP" class="w-full border border-slate-200 rounded px-2 py-1 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 items-end pt-2">
+                    <div class="grid grid-cols-2 gap-3 items-end pt-1">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Initial Status State</label>
-                            <select id="form-status" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-bold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                            <label class="block text-[9px] font-bold text-slate-500 mb-0.5 uppercase">Initial Status State</label>
+                            <select id="form-status" required class="w-full border border-slate-200 bg-white rounded px-2 py-1 font-bold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
                                 <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
                             </select>
                         </div>
-                        <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-slate-800 transition-all active:scale-98 flex items-center justify-center space-x-2 h-[34px]">
-                            <i class="fa-solid fa-cloud-arrow-up text-[11px] text-emerald-400"></i>
+                        <button type="submit" class="bg-slate-900 text-white font-bold px-4 py-1.5 rounded shadow hover:bg-slate-800 transition-all active:scale-98 flex items-center justify-center space-x-2 h-7">
+                            <i class="fa-solid fa-cloud-arrow-up text-xs text-emerald-400"></i>
                             <span>SAVE</span>
                         </button>
                     </div>
                 </form>
 
-                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-                    <div class="border-b border-slate-100 pb-2">
-                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Bulk CSV Batch Importer</h3>
-                        <p class="text-slate-400 text-[10px]">Parse traditional planner files instantly into Google Sheets rows.</p>
+                <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-3">
+                    <div class="border-b border-slate-100 pb-1.5">
+                        <h3 class="font-bold text-slate-800 text-xs tracking-tight">Bulk CSV Batch Importer</h3>
+                        <p class="text-slate-400 text-[9px]">Parse traditional planner files instantly into Google Sheets rows.</p>
                     </div>
-                    <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center bg-slate-50/50 hover:bg-slate-50 transition relative">
+                    <div class="border-2 border-dashed border-slate-200 rounded-lg p-3 text-center bg-slate-50/50 hover:bg-slate-50 transition relative">
                         <input type="file" accept=".csv" onchange="importCSVFile(event)" class="absolute inset-0 opacity-0 cursor-pointer">
                         <div class="text-slate-400 space-y-1">
-                            <i class="fa-solid fa-file-csv text-2xl text-slate-300"></i>
+                            <i class="fa-solid fa-file-csv text-xl text-slate-300"></i>
                             <p class="text-[10px] font-bold text-slate-600">Click to locate spreadsheet CSV</p>
-                            <p class="text-[9px] text-slate-400">Accepts standard layout matrices</p>
+                            <p class="text-[8px] text-slate-400">Accepts standard layout matrices</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="panel-schedules" class="hidden space-y-4">
-                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
-                    <div class="flex items-center space-x-3 flex-1">
-                        <div class="w-48 relative">
-                            <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Search equipment / description..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1 text-[11px] font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-inner">
-                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+            <div id="panel-schedules" class="hidden space-y-2">
+                <div class="bg-white border border-slate-200 rounded-lg p-2 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-2 flex-1">
+                        <div class="w-44 relative">
+                            <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Search equipment / description..." class="w-full bg-slate-50 border border-slate-200 rounded pl-7 pr-2 py-0.5 text-[11px] font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-inner">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2 top-1.5 text-slate-400 text-[9px]"></i>
                         </div>
-                        <select id="filter-planner" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Planners</option><option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option></select>
-                        <select id="filter-type" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Scopes</option><option value="PM">PM Only</option><option value="CM">CM Only</option></select>
-                        <select id="filter-status" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Status States</option><option value="DONE">Completed Only</option><option value="NOT DONE">Incomplete Only</option></select>
+                        <select id="filter-planner" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Planners</option><option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option></select>
+                        <select id="filter-type" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Scopes</option><option value="PM">PM Only</option><option value="CM">CM Only</option></select>
+                        <select id="filter-status" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Status States</option><option value="DONE">Completed Only</option><option value="NOT DONE">Incomplete Only</option></select>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="carryOverNotDone()" class="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm transition-all active:scale-95 flex items-center space-x-1.5">
+                    <div class="flex items-center space-x-1.5">
+                        <button onclick="carryOverNotDone()" class="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold px-2.5 py-0.5 rounded text-[10px] shadow-sm transition-all active:scale-95 flex items-center space-x-1">
                             <i class="fa-solid fa-forward-fast text-amber-500"></i>
                             <span>Carry Over "NOT DONE"</span>
                         </button>
-                        <select id="schedule-week-select" onchange="switchTab('week-'+this.value)" class="bg-slate-900 text-white font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm focus:outline-none border-none cursor-pointer"></select>
+                        <select id="schedule-week-select" onchange="switchTab('week-'+this.value)" class="bg-slate-900 text-white font-bold px-2 py-0.5 rounded text-[10px] shadow-sm focus:outline-none border-none cursor-pointer"></select>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <table class="w-full text-left border-collapse table-fixed">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                                    <th class="py-2.5 px-3 text-center w-10">Idx</th>
-                                    <th class="py-2.5 px-3">Equipment No</th>
-                                    <th class="py-2.5 px-3">Planner</th>
-                                    <th class="py-2.5 px-2 text-center">Type</th>
-                                    <th class="py-2.5 px-4 max-w-xs">Activity Description</th>
-                                    <th class="py-2.5 px-3">Target Date</th>
-                                    <th class="py-2.5 px-2">Duration</th>
-                                    <th class="py-2.5 px-3">Parts / Info Status</th>
-                                    <th class="py-2.5 px-3">Location</th>
-                                    <th class="py-2.5 px-3 text-center">Current Status</th>
-                                    <th class="py-2.5 px-2 text-center w-16">Actions</th>
+                                <tr class="bg-slate-100 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-1.5 px-2 text-center w-8">Idx</th>
+                                    <th class="py-1.5 px-2 w-20">Equipment No</th>
+                                    <th class="py-1.5 px-2 w-20">Planner</th>
+                                    <th class="py-1.5 px-1 text-center w-12">Type</th>
+                                    <th class="py-1.5 px-2 w-72">Activity Description</th>
+                                    <th class="py-1.5 px-2 w-24">Target Date</th>
+                                    <th class="py-1.5 px-1 w-16">Duration</th>
+                                    <th class="py-1.5 px-2 w-40">Parts / Info Status</th>
+                                    <th class="py-1.5 px-2 w-32">Location</th>
+                                    <th class="py-1.5 px-2 text-center w-24">Current Status</th>
+                                    <th class="py-1.5 px-1 text-center w-14">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="schedule-table-body" class="divide-y divide-slate-100 text-[11px]"></tbody>
+                            <tbody id="schedule-table-body" class="divide-y divide-slate-200 bg-white text-[11px]"></tbody>
                         </table>
                     </div>
-                    <div id="table-empty-state" class="hidden p-8 text-center space-y-1 bg-slate-50/50">
-                        <i class="fa-solid fa-folder-open text-xl text-slate-300"></i>
-                        <p class="text-slate-500 font-bold text-[11px]">No matching operational database records detected</p>
-                        <p class="text-slate-400 text-[9px]">Check filters or add records via data panel forms</p>
+                    <div id="table-empty-state" class="hidden p-6 text-center space-y-1 bg-slate-50/50">
+                        <i class="fa-solid fa-folder-open text-base text-slate-300"></i>
+                        <p class="text-slate-500 font-bold text-[10px]">No matching operational database records detected</p>
+                        <p class="text-slate-400 text-[8px]">Check filters or add records via data panel forms</p>
                     </div>
                 </div>
             </div>
@@ -270,78 +270,78 @@
     </main>
 
     <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden">
-            <div class="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center space-x-2 text-slate-800">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-xl max-w-md w-full overflow-hidden">
+            <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-1.5 text-slate-800">
                     <i class="fa-solid fa-pen-to-square text-xs text-blue-500"></i>
-                    <h3 class="font-black tracking-tight text-xs uppercase">Modify Row Entry Parameters</h3>
+                    <h3 class="font-black tracking-tight text-[10px] uppercase">Modify Row Entry Parameters</h3>
                 </div>
                 <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition"><i class="fa-solid fa-xmark text-sm"></i></button>
             </div>
-            <form id="edit-task-form" onsubmit="handleEditFormSubmit(event)" class="p-5 space-y-4">
+            <form id="edit-task-form" onsubmit="handleEditFormSubmit(event)" class="p-4 space-y-3">
                 <input type="hidden" id="edit-week">
                 <input type="hidden" id="edit-no">
                 <input type="hidden" id="edit-row-id">
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-3 gap-2">
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Equipment Code</label>
-                        <input type="text" id="edit-equip" required class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 uppercase focus:outline-none focus:border-blue-500">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Equipment Code</label>
+                        <input type="text" id="edit-equip" required class="w-full border border-slate-200 rounded px-2 py-0.5 text-xs font-bold text-slate-800 uppercase focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Assigned Planner</label>
-                        <select id="edit-planner" required class="w-full border border-slate-200 bg-white rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Assigned Planner</label>
+                        <select id="edit-planner" required class="w-full border border-slate-200 bg-white rounded px-1.5 py-0.5 text-xs font-semibold text-slate-700 focus:outline-none">
                             <option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Classification Type</label>
-                        <select id="edit-type" required class="w-full border border-slate-200 bg-white rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Classification Type</label>
+                        <select id="edit-type" required class="w-full border border-slate-200 bg-white rounded px-1.5 py-0.5 text-xs font-semibold text-slate-700 focus:outline-none">
                             <option value="PM">PM (Preventive)</option><option value="CM">CM (Corrective)</option>
                         </select>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Work Activity Scope Description</label>
-                    <textarea id="edit-activity" required rows="2" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500"></textarea>
+                    <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Work Activity Scope Description</label>
+                    <textarea id="edit-activity" required rows="2" class="w-full border border-slate-200 rounded px-2 py-0.5 text-xs font-medium text-slate-700 focus:outline-none"></textarea>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Target Schedule Window</label>
-                        <input type="text" id="edit-date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Target Schedule Window</label>
+                        <input type="text" id="edit-date" class="w-full border border-slate-200 rounded px-2 py-0.5 text-xs text-slate-700 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Duration Metrics</label>
-                        <input type="text" id="edit-duration" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Duration Metrics</label>
+                        <input type="text" id="edit-duration" class="w-full border border-slate-200 rounded px-2 py-0.5 text-xs text-slate-700 focus:outline-none">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Operational Location</label>
-                        <input type="text" id="edit-loc" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Operational Location</label>
+                        <input type="text" id="edit-loc" class="w-full border border-slate-200 rounded px-2 py-0.5 text-xs text-slate-700 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Parts Status / Remarks</label>
-                        <input type="text" id="edit-info" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Parts Status / Remarks</label>
+                        <input type="text" id="edit-info" class="w-full border border-slate-200 rounded px-2 py-0.5 text-xs text-slate-700 focus:outline-none">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Execution Status State</label>
-                    <select id="edit-status" onchange="toggleRemarksFieldVisibility(this.value)" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none">
+                    <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Execution Status State</label>
+                    <select id="edit-status" onchange="toggleRemarksFieldVisibility(this.value)" required class="w-full border border-slate-200 bg-white rounded px-2 py-0.5 text-xs font-bold text-slate-700 focus:outline-none">
                         <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
                     </select>
                 </div>
                 
-                <div id="remarks-field-wrapper" class="p-2.5 bg-rose-50/70 border border-rose-100 rounded-lg transition-all duration-200">
-                    <label class="block text-[9px] font-bold text-rose-700 uppercase mb-1 flex items-center justify-between">
+                <div id="remarks-field-wrapper" class="p-2 bg-rose-50/70 border border-rose-100 rounded transition-all duration-200">
+                    <label class="block text-[8px] font-bold text-rose-700 uppercase mb-0.5 flex items-center justify-between">
                         <span>Remarks / Reason for Carry Over</span>
-                        <span class="text-[8px] text-rose-400 lowercase font-normal">(Required if item isn't complete)</span>
+                        <span class="text-[7px] text-rose-400 lowercase font-normal">(Required if item isn't complete)</span>
                     </label>
-                    <textarea id="edit-remarks" rows="2" placeholder="e.g. Awaiting specialized cylinder seals / Crew tied up at regional yard..." class="w-full border border-rose-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:border-rose-500 bg-white"></textarea>
+                    <textarea id="edit-remarks" rows="2" placeholder="e.g. Awaiting specialized cylinder seals..." class="w-full border border-rose-200 rounded px-2 py-0.5 text-xs font-medium text-slate-700 focus:outline-none bg-white"></textarea>
                 </div>
 
-                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeEditModal()" class="border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold px-4 py-1.5 rounded-lg text-[11px] transition">Cancel</button>
-                    <button type="submit" class="bg-blue-600 text-white font-bold px-4 py-1.5 rounded-lg text-[11px] hover:bg-blue-700 shadow transition">Commit Updates</button>
+                <div class="flex justify-end space-x-1.5 pt-1.5 border-t border-slate-100">
+                    <button type="button" onclick="closeEditModal()" class="border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold px-3 py-1 rounded text-[11px]">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white font-bold px-3 py-1 rounded text-[11px] hover:bg-blue-700 shadow">Commit Updates</button>
                 </div>
             </form>
         </div>
@@ -379,9 +379,9 @@
         function toggleRemarksFieldVisibility(statusValue) {
             const wrapper = document.getElementById('remarks-field-wrapper');
             if (statusValue === 'DONE') {
-                wrapper.className = "p-2.5 bg-slate-50 border border-slate-200 rounded-lg opacity-60 transition-all";
+                wrapper.className = "p-2 bg-slate-50 border border-slate-200 rounded opacity-60 transition-all";
             } else {
-                wrapper.className = "p-2.5 bg-rose-50/70 border border-rose-100 rounded-lg transition-all duration-200";
+                wrapper.className = "p-2 bg-rose-50/70 border border-rose-100 rounded transition-all duration-200";
             }
         }
 
@@ -400,7 +400,7 @@
                     
                     database.schedules[w].push({
                         no: database.schedules[w].length + 1,
-                        id: row["ID"] || "", // Track the genuine unique row identification key
+                        id: row["ID"] || "",
                         equip: row["Equipment No"] || "",
                         planner: row["Assigned Planner"] || "",
                         type: row["Type"] || "CM",
@@ -435,8 +435,6 @@
         function handleFormSubmit(event) {
             event.preventDefault();
             const wNum = document.getElementById('form-week').value.toString().trim();
-            
-            // Generate a secure unique random numerical ID block when inputting fresh data rows
             const uniqueRowId = "ID-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
 
             const payload = {
@@ -472,7 +470,6 @@
             event.preventDefault();
             const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
 
-            // If an ID doesn't exist for older historical rows, warn user
             if (!targetIdValue || targetIdValue === "undefined" || targetIdValue === "") {
                 alert("This row doesn't have an ID assigned in your Google Sheet column yet. Please type any number/text into that row's ID column directly inside Google Sheets first.");
                 return;
@@ -491,13 +488,10 @@
                 "Remarks": document.getElementById('edit-remarks').value
             };
 
-            // Safely target only the entry row matching this distinct specific ID
             fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    data: updatedData
-                })
+                body: JSON.stringify({ data: updatedData })
             })
             .then(res => res.json())
             .then(() => {
@@ -713,14 +707,14 @@
             const btnInput = document.getElementById('btn-input-form');
 
             if(target === 'kpi') {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnKpi.className = "w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
+                btnInput.className = "w-full flex items-center px-2.5 py-1.5 text-[11px] font-medium rounded-md text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
             } else if (target === 'input-form') {
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnInput.className = "w-full flex items-center px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-[#ffcc00] text-slate-950 transition-all duration-150 shadow-sm";
+                btnKpi.className = "w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-medium rounded-md text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
             } else {
-                btnKpi.className = "w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
-                btnInput.className = "w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnKpi.className = "w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-medium rounded-md text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
+                btnInput.className = "w-full flex items-center px-2.5 py-1.5 text-[11px] font-medium rounded-md text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150";
             }
 
             document.getElementById('panel-kpi').classList.add('hidden');
@@ -761,11 +755,11 @@
                 const progressColor = row.rate >= 80 ? 'bg-emerald-500' : (row.rate >= 50 ? 'bg-amber-500' : 'bg-rose-500');
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/50 transition border-b border-slate-100">
-                        <td class="py-3 px-6 font-bold text-slate-900">${row.name}</td>
-                        <td class="py-3 px-6 text-slate-500"><span class="font-semibold text-slate-700 text-[10px]">${row.type}</span><span class="text-[9px] text-slate-400 ml-1">(${row.area})</span></td>
-                        <td class="py-3 px-6 text-center font-bold text-slate-700">${row.planned}</td>
-                        <td class="py-3 px-6 text-center font-bold text-emerald-600">${row.actual}</td>
-                        <td class="py-3 px-6"><div class="flex items-center space-x-2"><div class="w-28 bg-slate-100 rounded-full h-1.5"><div class="${progressColor} h-1.5 rounded-full" style="width: ${row.rate}%"></div></div><span class="font-bold text-slate-800 text-[10px]">${row.rate}%</span></div></td>
+                        <td class="py-2 px-4 font-bold text-slate-900">${row.name}</td>
+                        <td class="py-2 px-4 text-slate-500"><span class="font-semibold text-slate-700 text-[10px]">${row.type}</span><span class="text-[9px] text-slate-400 ml-1">(${row.area})</span></td>
+                        <td class="py-2 px-4 text-center font-bold text-slate-700">${row.planned}</td>
+                        <td class="py-2 px-4 text-center font-bold text-emerald-600">${row.actual}</td>
+                        <td class="py-2 px-4"><div class="flex items-center space-x-2"><div class="w-24 bg-slate-100 rounded-full h-1.5"><div class="${progressColor} h-1.5 rounded-full" style="width: ${row.rate}%"></div></div><span class="font-bold text-slate-800 text-[10px]">${row.rate}%</span></div></td>
                     </tr>`;
             });
 
@@ -806,33 +800,33 @@
                     
                     const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
 
-                    const remarksIndicator = item.remarks ? `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 max-w-max truncate border border-rose-100"><i class="fa-solid fa-comment-dots mr-1"></i>${item.remarks}</div>` : '';
+                    const remarksIndicator = item.remarks ? `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 border border-rose-100 break-words whitespace-normal"><i class="fa-solid fa-comment-dots mr-1"></i>${item.remarks}</div>` : '';
 
                     tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
-                            <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
-                            <td class="py-2.5 px-3 font-bold text-slate-900 tracking-tight">${item.equip}</td>
-                            <td class="py-2.5 px-3 font-semibold text-slate-700">${item.planner}</td>
-                            <td class="py-2.5 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
-                            <td class="py-2.5 px-4 max-w-xs text-slate-600">
-                                <div class="truncate font-medium" title="${item.activity}">${item.activity}</div>
+                        <tr class="hover:bg-slate-50 transition text-[11px] align-top">
+                            <td class="py-1.5 px-2 text-center font-mono text-slate-400 text-[10px] border-b border-slate-100">${count}</td>
+                            <td class="py-1.5 px-2 font-bold text-slate-900 tracking-tight border-b border-slate-100 break-words whitespace-normal">${item.equip}</td>
+                            <td class="py-1.5 px-2 font-semibold text-slate-700 border-b border-slate-100">${item.planner}</td>
+                            <td class="py-1.5 px-1 text-center border-b border-slate-100"><span class="px-1 py-0.5 text-[9px] font-bold rounded-sm ${typeBadge}">${item.type}</span></td>
+                            <td class="py-1.5 px-2 text-slate-600 border-b border-slate-100 break-words whitespace-normal leading-normal">
+                                <div class="font-medium">${item.activity}</div>
                                 ${remarksIndicator}
                             </td>
-                            <td class="py-2.5 px-3 text-slate-500 font-medium">${item.date}</td>
-                            <td class="py-2.5 px-2 font-mono text-slate-500">${item.duration}</td>
-                            <td class="py-2.5 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
-                            <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
-                            <td class="py-2.5 px-3 text-center">
-                                <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Click to quickly update status" class="px-2.5 py-1 text-[10px] rounded-full border shadow-sm tracking-wide font-bold uppercase transition active:scale-95 hover:brightness-95 ${badgeStyles}">
+                            <td class="py-1.5 px-2 text-slate-500 font-medium border-b border-slate-100 break-words whitespace-normal">${item.date}</td>
+                            <td class="py-1.5 px-1 font-mono text-slate-500 border-b border-slate-100 break-words whitespace-normal">${item.duration}</td>
+                            <td class="py-1.5 px-2 text-slate-500 font-medium border-b border-slate-100 break-words whitespace-normal leading-normal">${item.info}</td>
+                            <td class="py-1.5 px-2 text-slate-500 font-semibold border-b border-slate-100 break-words whitespace-normal leading-normal">${item.loc}</td>
+                            <td class="py-1.5 px-2 text-center border-b border-slate-100">
+                                <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Click to quickly update status" class="w-full py-0.5 text-[9px] rounded border shadow-sm tracking-wide font-bold uppercase transition hover:brightness-95 ${badgeStyles}">
                                     ${item.status}
                                 </button>
                             </td>
-                            <td class="py-2.5 px-2 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center space-x-1">
-                                    <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Edit Row" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition">
+                            <td class="py-1.5 px-1 text-center border-b border-slate-100">
+                                <div class="flex items-center justify-center space-x-0.5">
+                                    <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" title="Edit Row" class="p-0.5 text-slate-400 hover:text-blue-600 rounded">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-                                    <button onclick="deleteTask('${currentlySelectedWeek}', ${item.no})" title="Delete Row" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition">
+                                    <button onclick="deleteTask('${currentlySelectedWeek}', ${item.no})" title="Delete Row" class="p-0.5 text-slate-400 hover:text-rose-600 rounded">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
