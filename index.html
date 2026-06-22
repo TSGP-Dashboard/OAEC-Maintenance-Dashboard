@@ -463,72 +463,67 @@
             });
         }
 
-       function handleEditFormSubmit(event) {
-    event.preventDefault();
-    const weekStr = document.getElementById('edit-week').value;
-    const originalActivity = document.getElementById('edit-orig-activity').value;
-    const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
+        function handleEditFormSubmit(event) {
+            event.preventDefault();
+            const weekStr = document.getElementById('edit-week').value;
+            const originalActivity = document.getElementById('edit-orig-activity').value;
+            const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
 
-    const updatedData = {
-        "Equipment No": equipmentCode,
-        "Type": document.getElementById('edit-type').value,
-        "Assigned Planner": document.getElementById('edit-planner').value,
-        "Current Status": document.getElementById('edit-status').value,
-        "Activity Description": document.getElementById('edit-activity').value,
-        "Target Date": document.getElementById('edit-date').value,
-        "Duration": document.getElementById('edit-duration').value,
-        "Location": document.getElementById('edit-loc').value,
-        "Parts Status": document.getElementById('edit-info').value,
-        "Remarks": document.getElementById('edit-remarks').value
-    };
+            const updatedData = {
+                "Equipment No": equipmentCode,
+                "Type": document.getElementById('edit-type').value,
+                "Assigned Planner": document.getElementById('edit-planner').value,
+                "Current Status": document.getElementById('edit-status').value,
+                "Activity Description": document.getElementById('edit-activity').value,
+                "Target Date": document.getElementById('edit-date').value,
+                "Duration": document.getElementById('edit-duration').value,
+                "Location": document.getElementById('edit-loc').value,
+                "Parts Status": document.getElementById('edit-info').value,
+                "Remarks": document.getElementById('edit-remarks').value
+            };
 
-    // SheetDB precise matching using URL Search Parameters with PATCH
-    const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`;
+            const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`;
 
-    fetch(queryUrl, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            data: updatedData
-        })
-    })
-    .then(res => res.json())
-    .then(() => {
-        closeEditModal();
-        loadDatabaseFromCloud();
-    });
-}
-   function toggleTaskStatus(weekStr, taskNo) {
-    const taskList = database.schedules[weekStr] || [];
-    const foundTask = taskList.find(t => t.no === taskNo);
-    
-    if (foundTask) {
-        const cur = foundTask.status.trim().toUpperCase();
-        let nextStatus = "FOR SCHEDULE";
-
-        if (cur === "FOR SCHEDULE") nextStatus = "ONGOING";
-        else if (cur === "ONGOING") nextStatus = "DONE";
-        else if (cur === "DONE") nextStatus = "NOT DONE";
-        else if (cur === "NOT DONE") nextStatus = "FOR SCHEDULE";
-
-        // SheetDB expects PATCH with query parameters to update matching rows uniquely
-        const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`;
-
-        fetch(queryUrl, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                data: { "Current Status": nextStatus }
+            fetch(queryUrl, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: updatedData
+                })
             })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error(`Server code ${res.status}`);
-            return res.json();
-        })
-        .then(() => loadDatabaseFromCloud())
-        .catch(err => console.error("Update failed:", err));
-    }
-}
+            .then(res => res.json())
+            .then(() => {
+                closeEditModal();
+                loadDatabaseFromCloud();
+            });
+        }
+
+        function updateTaskStatusDropdown(weekStr, taskNo, selectedStatus) {
+            const taskList = database.schedules[weekStr] || [];
+            const foundTask = taskList.find(t => t.no === taskNo);
+            
+            if (foundTask) {
+                const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`;
+
+                fetch(queryUrl, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: { "Current Status": selectedStatus }
+                    })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error(`Server code ${res.status}`);
+                    return res.json();
+                })
+                .then(() => loadDatabaseFromCloud())
+                .catch(err => {
+                    console.error("Update failed:", err);
+                    alert("Failed to sync the selection changes back to the cloud document.");
+                });
+            }
+        }
+
         function deleteTask(weekStr, taskNo) {
             if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
 
@@ -536,7 +531,6 @@
             const item = taskList.find(t => t.no === taskNo);
             if (!item) return;
 
-            // Targets unique row deletion by query parameters instead of global activity text alone
             fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(item.equip)}&Activity Description=${encodeURIComponent(item.activity)}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
@@ -811,11 +805,11 @@
 
                 if (matchSearch && matchPlanner && matchType && matchStatus) {
                     count++;
-                    let badgeStyles = "bg-slate-100 text-slate-700 border-slate-200"; 
-                    if (normStatus === 'DONE') badgeStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
-                    else if (normStatus === 'NOT DONE') badgeStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
-                    else if (normStatus === 'ONGOING') badgeStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
-                    else if (normStatus === 'FOR SCHEDULE') badgeStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
+                    let bgStyles = "bg-slate-100 text-slate-700 border-slate-200"; 
+                    if (normStatus === 'DONE') bgStyles = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-semibold";
+                    else if (normStatus === 'NOT DONE') bgStyles = "bg-rose-50 text-rose-700 border-rose-200/60 font-semibold";
+                    else if (normStatus === 'ONGOING') bgStyles = "bg-amber-50 text-amber-700 border-amber-200/60 font-semibold";
+                    else if (normStatus === 'FOR SCHEDULE') bgStyles = "bg-blue-50 text-blue-700 border-blue-200/60 font-semibold";
                     
                     const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
 
@@ -836,9 +830,12 @@
                             <td class="py-2.5 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
                             <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
                             <td class="py-2.5 px-2 text-center">
-                                <button onclick="toggleTaskStatus('${currentlySelectedWeek}', ${item.no})" title="Click to loop toggle completion state" class="px-3 py-1 text-[10px] rounded-full border ${badgeStyles} hover:opacity-80 active:scale-95 transition-all shadow-sm whitespace-nowrap">
-                                    • ${item.status}
-                                </button>
+                                <select onchange="updateTaskStatusDropdown('${currentlySelectedWeek}', ${item.no}, this.value)" class="px-2 py-1 text-[10px] rounded-full border shadow-sm font-bold cursor-pointer focus:outline-none transition-all ${bgStyles}">
+                                    <option value="FOR SCHEDULE" ${normStatus === 'FOR SCHEDULE' ? 'selected' : ''}>• FOR SCHEDULE</option>
+                                    <option value="ONGOING" ${normStatus === 'ONGOING' ? 'selected' : ''}>• ONGOING</option>
+                                    <option value="NOT DONE" ${normStatus === 'NOT DONE' ? 'selected' : ''}>• NOT DONE</option>
+                                    <option value="DONE" ${normStatus === 'DONE' ? 'selected' : ''}>• DONE</option>
+                                </select>
                             </td>
                             <td class="py-2.5 px-2 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center space-x-1">
