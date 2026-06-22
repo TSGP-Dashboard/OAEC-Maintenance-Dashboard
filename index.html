@@ -463,7 +463,7 @@
             });
         }
 
-        function handleEditFormSubmit(event) {
+       function handleEditFormSubmit(event) {
     event.preventDefault();
     const weekStr = document.getElementById('edit-week').value;
     const originalActivity = document.getElementById('edit-orig-activity').value;
@@ -482,16 +482,13 @@
         "Remarks": document.getElementById('edit-remarks').value
     };
 
-    // SheetDB precise matching using nested query properties
-    fetch(SHEETDB_API_URL, {
-        method: 'PUT',
+    // SheetDB precise matching using URL Search Parameters with PATCH
+    const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`;
+
+    fetch(queryUrl, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            query: {
-                "Week": weekStr,
-                "Equipment No": equipmentCode,
-                "Activity Description": originalActivity
-            },
             data: updatedData
         })
     })
@@ -501,8 +498,7 @@
         loadDatabaseFromCloud();
     });
 }
-
-      function toggleTaskStatus(weekStr, taskNo) {
+   function toggleTaskStatus(weekStr, taskNo) {
     const taskList = database.schedules[weekStr] || [];
     const foundTask = taskList.find(t => t.no === taskNo);
     
@@ -515,16 +511,13 @@
         else if (cur === "DONE") nextStatus = "NOT DONE";
         else if (cur === "NOT DONE") nextStatus = "FOR SCHEDULE";
 
-        // SheetDB Update by multiple fields using PUT with a query block
-        fetch(SHEETDB_API_URL, {
-            method: 'PUT',
+        // SheetDB expects PATCH with query parameters to update matching rows uniquely
+        const queryUrl = `${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`;
+
+        fetch(queryUrl, {
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                query: {
-                    "Week": weekStr,
-                    "Equipment No": foundTask.equip,
-                    "Activity Description": foundTask.activity
-                },
                 data: { "Current Status": nextStatus }
             })
         })
