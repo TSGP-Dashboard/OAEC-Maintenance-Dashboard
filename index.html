@@ -464,45 +464,49 @@
         }
 
         function handleEditFormSubmit(event) {
-            event.preventDefault();
-            const weekStr = document.getElementById('edit-week').value;
-            const originalActivity = document.getElementById('edit-orig-activity').value;
-            const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
+    event.preventDefault();
+    const weekStr = document.getElementById('edit-week').value;
+    const originalActivity = document.getElementById('edit-orig-activity').value;
+    const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
 
-            const updatedData = {
+    const updatedData = {
+        "Equipment No": equipmentCode,
+        "Type": document.getElementById('edit-type').value,
+        "Assigned Planner": document.getElementById('edit-planner').value,
+        "Current Status": document.getElementById('edit-status').value,
+        "Activity Description": document.getElementById('edit-activity').value,
+        "Target Date": document.getElementById('edit-date').value,
+        "Duration": document.getElementById('edit-duration').value,
+        "Location": document.getElementById('edit-loc').value,
+        "Parts Status": document.getElementById('edit-info').value,
+        "Remarks": document.getElementById('edit-remarks').value
+    };
+
+    // SheetDB precise matching using nested query properties
+    fetch(SHEETDB_API_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query: {
+                "Week": weekStr,
                 "Equipment No": equipmentCode,
-                "Type": document.getElementById('edit-type').value,
-                "Assigned Planner": document.getElementById('edit-planner').value,
-                "Current Status": document.getElementById('edit-status').value,
-                "Activity Description": document.getElementById('edit-activity').value,
-                "Target Date": document.getElementById('edit-date').value,
-                "Duration": document.getElementById('edit-duration').value,
-                "Location": document.getElementById('edit-loc').value,
-                "Parts Status": document.getElementById('edit-info').value,
-                "Remarks": document.getElementById('edit-remarks').value
-            };
+                "Activity Description": originalActivity
+            },
+            data: updatedData
+        })
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeEditModal();
+        loadDatabaseFromCloud();
+    });
+}
 
-            // Targets unique row by matching Week, Equipment No, and Activity name combined
-            fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    data: updatedData
-                })
-            })
-            .then(res => res.json())
-            .then(() => {
-                closeEditModal();
-                loadDatabaseFromCloud();
-            });
-        }
-
-       function toggleTaskStatus(weekStr, taskNo) {
+      function toggleTaskStatus(weekStr, taskNo) {
     const taskList = database.schedules[weekStr] || [];
     const foundTask = taskList.find(t => t.no === taskNo);
     
     if (foundTask) {
-        // 1. Cycle the states smoothly
         const cur = foundTask.status.trim().toUpperCase();
         let nextStatus = "FOR SCHEDULE";
 
@@ -511,30 +515,27 @@
         else if (cur === "DONE") nextStatus = "NOT DONE";
         else if (cur === "NOT DONE") nextStatus = "FOR SCHEDULE";
 
-        // 2. Format a compliant SheetDB single-column patch route
-        // We target the row using its unique "Activity Description"
-        const targetColumn = "Activity Description";
-        const targetValue = encodeURIComponent(foundTask.activity);
-
-        fetch(`${SHEETDB_API_URL}/${targetColumn}/${targetValue}`, {
-            method: 'PATCH',
+        // SheetDB Update by multiple fields using PUT with a query block
+        fetch(SHEETDB_API_URL, {
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                query: {
+                    "Week": weekStr,
+                    "Equipment No": foundTask.equip,
+                    "Activity Description": foundTask.activity
+                },
                 data: { "Current Status": nextStatus }
             })
         })
         .then(res => {
-            if (!res.ok) throw new Error(`Server returned status code ${res.status}`);
+            if (!res.ok) throw new Error(`Server code ${res.status}`);
             return res.json();
         })
-        .then(() => {
-            // Refresh instantly on screen
-            loadDatabaseFromCloud();
-        })
-        .catch(err => console.error("Status cycle network update failed:", err));
+        .then(() => loadDatabaseFromCloud())
+        .catch(err => console.error("Update failed:", err));
     }
 }
-
         function deleteTask(weekStr, taskNo) {
             if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
 
