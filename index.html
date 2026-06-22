@@ -326,10 +326,19 @@
                 </div>
                 <div>
                     <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Execution Status State</label>
-                    <select id="edit-status" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none">
+                    <select id="edit-status" onchange="toggleRemarksFieldVisibility(this.value)" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none">
                         <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
                     </select>
                 </div>
+                
+                <div id="remarks-field-wrapper" class="p-2.5 bg-rose-50/70 border border-rose-100 rounded-lg transition-all duration-200">
+                    <label class="block text-[9px] font-bold text-rose-700 uppercase mb-1 flex items-center justify-between">
+                        <span>Remarks / Reason for Carry Over</span>
+                        <span class="text-[8px] text-rose-400 lowercase font-normal">(Required if item isn't complete)</span>
+                    </label>
+                    <textarea id="edit-remarks" rows="2" placeholder="e.g. Awaiting specialized cylinder seals / Crew tied up at regional yard..." class="w-full border border-rose-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:border-rose-500 bg-white"></textarea>
+                </div>
+
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                     <button type="button" onclick="closeEditModal()" class="border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold px-4 py-1.5 rounded-lg text-[11px] transition">Cancel</button>
                     <button type="submit" class="bg-blue-600 text-white font-bold px-4 py-1.5 rounded-lg text-[11px] hover:bg-blue-700 shadow transition">Commit Updates</button>
@@ -367,6 +376,15 @@
             return `(${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)})`;
         }
 
+        function toggleRemarksFieldVisibility(statusValue) {
+            const wrapper = document.getElementById('remarks-field-wrapper');
+            if (statusValue === 'DONE') {
+                wrapper.className = "p-2.5 bg-slate-50 border border-slate-200 rounded-lg opacity-60 transition-all";
+            } else {
+                wrapper.className = "p-2.5 bg-rose-50/70 border border-rose-100 rounded-lg transition-all duration-200";
+            }
+        }
+
         function loadDatabaseFromCloud() {
             fetch(SHEETDB_API_URL)
             .then(response => response.json())
@@ -390,7 +408,8 @@
                         duration: row["Duration"] || "",
                         info: row["Parts Status"] || "",
                         loc: row["Location"] || "",
-                        status: row["Current Status"] || "FOR SCHEDULE"
+                        status: row["Current Status"] || "FOR SCHEDULE",
+                        remarks: row["Remarks"] || ""
                     });
                 });
 
@@ -426,7 +445,8 @@
                 "Duration": document.getElementById('form-duration').value || "--",
                 "Parts Status": document.getElementById('form-info').value || "NONE",
                 "Location": document.getElementById('form-loc').value || "MAIN HQ",
-                "Current Status": document.getElementById('form-status').value
+                "Current Status": document.getElementById('form-status').value,
+                "Remarks": ""
             };
 
             fetch(SHEETDB_API_URL, {
@@ -446,7 +466,6 @@
         function handleEditFormSubmit(event) {
             event.preventDefault();
             const weekStr = document.getElementById('edit-week').value;
-            const taskNo = parseInt(document.getElementById('edit-no').value);
             const originalActivity = document.getElementById('edit-orig-activity').value;
 
             const updatedData = {
@@ -458,10 +477,10 @@
                 "Target Date": document.getElementById('edit-date').value,
                 "Duration": document.getElementById('edit-duration').value,
                 "Location": document.getElementById('edit-loc').value,
-                "Parts Status": document.getElementById('edit-info').value
+                "Parts Status": document.getElementById('edit-info').value,
+                "Remarks": document.getElementById('edit-remarks').value
             };
 
-            // FIX: We now find by the unique 'Activity Description' column instead of overwriting the whole week!
             fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(originalActivity)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -487,7 +506,6 @@
                 else if (cur === "NOT DONE") nextStatus = "ONGOING";
                 else if (cur === "ONGOING") nextStatus = "FOR SCHEDULE";
 
-                // FIX: We target the precise row's Activity Description
                 fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(foundTask.activity)}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
@@ -507,7 +525,6 @@
             const item = taskList.find(t => t.no === taskNo);
             if (!item) return;
 
-            // FIX: Target via the unique activity column for deletion safety
             fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(item.activity)}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
@@ -574,7 +591,8 @@
                             "Duration": row[startIdx + offset + 4] || "--",
                             "Parts Status": row[startIdx + offset + 6] || "NONE",
                             "Location": row[startIdx + offset + 7] || "WORKSHOP",
-                            "Current Status": statusVal.includes("DONE") && statusVal !== "NOT DONE" ? "DONE" : "NOT DONE"
+                            "Current Status": statusVal.includes("DONE") && statusVal !== "NOT DONE" ? "DONE" : "NOT DONE",
+                            "Remarks": ""
                         });
                     }
                 });
@@ -625,7 +643,8 @@
                     "Duration": item.duration,
                     "Parts Status": item.info,
                     "Location": item.loc,
-                    "Current Status": "NOT DONE"
+                    "Current Status": "NOT DONE",
+                    "Remarks": item.remarks
                 };
             });
 
@@ -788,13 +807,19 @@
                     
                     const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
 
+                    // If a remark exists, let's create a tool-tip indicator next to the activity description text
+                    const remarksIndicator = item.remarks ? `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 max-w-max truncate border border-rose-100"><i class="fa-solid fa-comment-dots mr-1"></i>${item.remarks}</div>` : '';
+
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
                             <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
                             <td class="py-2.5 px-3 font-bold text-slate-900 tracking-tight">${item.equip}</td>
                             <td class="py-2.5 px-3 font-semibold text-slate-700">${item.planner}</td>
                             <td class="py-2.5 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
-                            <td class="py-2.5 px-4 max-w-xs truncate text-slate-600" title="${item.activity}">${item.activity}</td>
+                            <td class="py-2.5 px-4 max-w-xs text-slate-600">
+                                <div class="truncate font-medium" title="${item.activity}">${item.activity}</div>
+                                ${remarksIndicator}
+                            </td>
                             <td class="py-2.5 px-3 text-slate-500 font-medium">${item.date}</td>
                             <td class="py-2.5 px-2 font-mono text-slate-500">${item.duration}</td>
                             <td class="py-2.5 px-3 text-slate-400 truncate max-w-[120px] font-medium">${item.info}</td>
@@ -827,7 +852,7 @@
 
             document.getElementById('edit-week').value = weekStr;
             document.getElementById('edit-no').value = taskNo;
-            document.getElementById('edit-orig-activity').value = item.activity; // Store original tracking key
+            document.getElementById('edit-orig-activity').value = item.activity; 
             document.getElementById('edit-equip').value = item.equip;
             document.getElementById('edit-type').value = item.type;
             document.getElementById('edit-planner').value = item.planner;
@@ -837,7 +862,9 @@
             document.getElementById('edit-duration').value = item.duration;
             document.getElementById('edit-loc').value = item.loc;
             document.getElementById('edit-info').value = item.info;
+            document.getElementById('edit-remarks').value = item.remarks || "";
 
+            toggleRemarksFieldVisibility(item.status);
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
