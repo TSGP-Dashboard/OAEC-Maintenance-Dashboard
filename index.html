@@ -502,35 +502,39 @@
             });
         }
 
-        function updateTaskStatusDropdown(weekStr, taskNo, selectedStatus) {
-            const taskList = database.schedules[weekStr] || [];
-            const foundTask = taskList.find(t => t.no === taskNo);
-            
-            if (foundTask) {
-                // SheetDB safely processes multiple conditions inside a body query array with PUT
-                fetch(SHEETDB_API_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: {
-                            "Week": weekStr,
-                            "Equipment No": foundTask.equip,
-                            "Activity Description": foundTask.activity
-                        },
-                        data: { "Current Status": selectedStatus }
-                    })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error(`Server returned code ${res.status}`);
-                    return res.json();
-                })
-                .then(() => loadDatabaseFromCloud())
-                .catch(err => {
-                    console.error("Update failed:", err);
-                    alert("Synchronization failed. Check connection or console syntax logs.");
-                });
-            }
-        }
+      function updateTaskStatusDropdown(weekStr, taskNo, selectedStatus) {
+    const taskList = database.schedules[weekStr] || [];
+    const foundTask = taskList.find(t => t.no === taskNo);
+    
+    if (foundTask) {
+        // Safe URL encoding for special text characters like spaces, hashes, or ampersands
+        const targetValue = encodeURIComponent(foundTask.activity);
+        
+        // SheetDB PUT structure: URL/API_ID/{column_name}/{value}
+        fetch(`${SHEETDB_API_URL}/Activity%20Description/${targetValue}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                data: { "Current Status": selectedStatus }
+            })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error(`Server returned code ${res.status}`);
+            return res.json();
+        })
+        .then(() => {
+            console.log("Status updated successfully.");
+            loadDatabaseFromCloud(); // Refresh the counts and layout metrics dynamically
+        })
+        .catch(err => {
+            console.error("Update failed:", err);
+            alert("Synchronization failed. Could not update cell state.");
+        });
+    }
+}
 
       function deleteTask(weekStr, taskNo) {
     if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
