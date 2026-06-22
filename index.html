@@ -464,36 +464,38 @@
         }
 
         function handleEditFormSubmit(event) {
-            event.preventDefault();
-            const weekStr = document.getElementById('edit-week').value;
-            const originalActivity = document.getElementById('edit-orig-activity').value;
+    event.preventDefault();
+    const weekStr = document.getElementById('edit-week').value;
+    const originalActivity = document.getElementById('edit-orig-activity').value;
+    const equipmentCode = document.getElementById('edit-equip').value.toUpperCase();
 
-            const updatedData = {
-                "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
-                "Type": document.getElementById('edit-type').value,
-                "Assigned Planner": document.getElementById('edit-planner').value,
-                "Current Status": document.getElementById('edit-status').value,
-                "Activity Description": document.getElementById('edit-activity').value,
-                "Target Date": document.getElementById('edit-date').value,
-                "Duration": document.getElementById('edit-duration').value,
-                "Location": document.getElementById('edit-loc').value,
-                "Parts Status": document.getElementById('edit-info').value,
-                "Remarks": document.getElementById('edit-remarks').value
-            };
+    const updatedData = {
+        "Equipment No": equipmentCode,
+        "Type": document.getElementById('edit-type').value,
+        "Assigned Planner": document.getElementById('edit-planner').value,
+        "Current Status": document.getElementById('edit-status').value,
+        "Activity Description": document.getElementById('edit-activity').value,
+        "Target Date": document.getElementById('edit-date').value,
+        "Duration": document.getElementById('edit-duration').value,
+        "Location": document.getElementById('edit-loc').value,
+        "Parts Status": document.getElementById('edit-info').value,
+        "Remarks": document.getElementById('edit-remarks').value
+    };
 
-            fetch(`${SHEETDB_API_URL}/Activity Description/${encodeURIComponent(originalActivity)}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    data: updatedData
-                })
-            })
-            .then(res => res.json())
-            .then(() => {
-                closeEditModal();
-                loadDatabaseFromCloud();
-            });
-        }
+    // Filter using the search endpoint so only this specific asset row gets updated
+    fetch(`${SHEETDB_API_URL}/search?Equipment No=${encodeURIComponent(equipmentCode)}&Activity Description=${encodeURIComponent(originalActivity)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            data: updatedData
+        })
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeEditModal();
+        loadDatabaseFromCloud();
+    });
+}
 
         function toggleTaskStatus(weekStr, taskNo) {
     const taskList = database.schedules[weekStr] || [];
