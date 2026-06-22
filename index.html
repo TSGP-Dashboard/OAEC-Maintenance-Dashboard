@@ -498,28 +498,32 @@
         }
 
         function toggleTaskStatus(weekStr, taskNo) {
-            const taskList = database.schedules[weekStr] || [];
-            const foundTask = taskList.find(t => t.no === taskNo);
-            
-            if (foundTask) {
-                const cur = foundTask.status.trim().toUpperCase();
-                let nextStatus = "DONE";
-                if (cur === "DONE") nextStatus = "NOT DONE";
-                else if (cur === "NOT DONE") nextStatus = "ONGOING";
-                else if (cur === "ONGOING") nextStatus = "FOR SCHEDULE";
+    const taskList = database.schedules[weekStr] || [];
+    const foundTask = taskList.find(t => t.no === taskNo);
+    
+    if (foundTask) {
+        // Clean up formatting to guarantee string checks match flawlessly
+        const cur = foundTask.status.trim().toUpperCase();
+        let nextStatus = "FOR SCHEDULE";
 
-                // Targets unique row by matching Week, Equipment No, and Activity name combined
-                fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        data: { "Current Status": nextStatus }
-                    })
-                })
-                .then(res => res.json())
-                .then(() => loadDatabaseFromCloud());
-            }
-        }
+        // Structured step-by-step cycle tracking
+        if (cur === "FOR SCHEDULE") nextStatus = "ONGOING";
+        else if (cur === "ONGOING") nextStatus = "DONE";
+        else if (cur === "DONE") nextStatus = "NOT DONE";
+        else if (cur === "NOT DONE") nextStatus = "FOR SCHEDULE";
+
+        // Update SheetDB with precise search selectors
+        fetch(`${SHEETDB_API_URL}/search?Week=${encodeURIComponent(weekStr)}&Equipment No=${encodeURIComponent(foundTask.equip)}&Activity Description=${encodeURIComponent(foundTask.activity)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                data: { "Current Status": nextStatus }
+            })
+        })
+        .then(res => res.json())
+        .then(() => loadDatabaseFromCloud());
+    }
+}
 
         function deleteTask(weekStr, taskNo) {
             if (!confirm("Are you sure you want to permanently delete this maintenance record row?")) return;
