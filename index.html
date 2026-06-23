@@ -391,7 +391,7 @@
     </div>
 
     <script>
-        const SHEETDB_API_URL = "https://script.google.com/macros/s/AKfycbx5sHN67n1zYa5Kk1ApB5fcaWNyFJSefi4VoqtmRdvG4jDbuBlX7LplX6T3iRGO-ikVvw/exec";
+        const SHEETDB_API_URL = "https://script.google.com/macros/s/AKfycbww5-yQiORWfd_8XnSku5_5iMHn6w2Iws3HDCyvpOHHfOGeHeooppT9CLeTDy14Amr2BA/exec";
 
         let activeTab = 'kpi';
         let currentlySelectedWeek = '23';
@@ -503,8 +503,9 @@
             };
 
             fetch(SHEETDB_API_URL, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: [payload] })
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'create', data: [payload] })
             })
             .then(() => {
                 document.getElementById('task-entry-form').reset();
@@ -516,8 +517,8 @@
 
         function handleEditFormSubmit(event) {
             event.preventDefault();
-            const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
-            if (!targetIdValue) { alert("Missing standard Row unique database index ID column."); return; }
+            const targetIdValue = document.getElementById('edit-row-id').value;
+            if (!targetIdValue) { alert("Missing target unique row database index ID."); return; }
 
             const updatedData = {
                 "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
@@ -532,9 +533,10 @@
                 "Remarks": document.getElementById('edit-remarks').value
             };
 
-            fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: updatedData })
+            fetch(SHEETDB_API_URL, {
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update', id: targetIdValue, data: updatedData })
             })
             .then(() => { closeEditModal(); loadDatabaseFromCloud(); });
         }
@@ -545,7 +547,12 @@
             if (!item || !item.id) return;
 
             if (!confirm(`Permanently drop record target for ${item.equip}?`)) return;
-            fetch(`${SHEETDB_API_URL}/ID/${encodeURIComponent(item.id)}`, { method: 'DELETE' })
+
+            fetch(SHEETDB_API_URL, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', id: item.id })
+            })
             .then(() => loadDatabaseFromCloud());
         }
 
@@ -584,8 +591,9 @@
                 });
 
                 fetch(SHEETDB_API_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: payloads })
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'create', data: payloads })
                 }).then(() => { alert("Import Complete."); loadDatabaseFromCloud(); });
             };
             reader.readAsText(file);
