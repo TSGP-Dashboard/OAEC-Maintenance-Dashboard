@@ -1,76 +1,865 @@
-function openEditModal(weekStr, taskNo) {
-    const taskList = database.schedules[weekStr] || [];
-    const item = taskList.find(t => t.no === taskNo);
-    if (!item) return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAEC MAINTENANCE DASHBOARD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f6f5; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @media print {
+            body { background: white !important; text-color: black !important; font-size: 10px !important; }
+            aside, header, #print-action-btn, .no-print { display: none !important; }
+            main { p: 0 !important; overflow: visible !important; height: auto !important; }
+            .print-card { border: 1px solid #cbd5e1 !important; box-shadow: none !important; margin-bottom: 15px !important; }
+        }
+    </style>
+</head>
+<body class="bg-[#f4f6f5] text-slate-800 antialiased h-screen overflow-hidden flex text-xs">
 
-    document.getElementById('edit-week').value = weekStr; 
-    document.getElementById('edit-no').value = taskNo;
-    document.getElementById('edit-row-id').value = item.id || ""; 
-    document.getElementById('edit-equip').value = item.equip;
-    document.getElementById('edit-type').value = item.type; 
-    document.getElementById('edit-planner').value = item.planner;
-    document.getElementById('edit-status').value = item.status; 
-    document.getElementById('edit-activity').value = item.activity;
-    document.getElementById('edit-date').value = item.date; 
-    document.getElementById('edit-duration').value = item.duration;
-    document.getElementById('edit-loc').value = item.loc; 
-    document.getElementById('edit-info').value = item.info;
-    document.getElementById('edit-remarks').value = item.remarks || "";
-    
-    // NEW: Populate the new tracking UI fields dynamically
-    document.getElementById('edit-done-date').value = item.doneDate || "";
-    document.getElementById('edit-carry-date').value = item.carryOverDate || "";
+    <aside class="w-60 bg-[#18251f] flex flex-col justify-between flex-shrink-0 border-r border-emerald-950/20 text-slate-200">
+        <div>
+            <div class="p-4 border-b border-emerald-900/40 bg-[#121c17] flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-[#ffcc00] flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-screwdriver-wrench text-slate-900 text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-[11px] text-white tracking-wide uppercase">WEEKLY MAINTENANCE PLAN</h1>
+                    <p class="text-[9px] text-emerald-400 font-medium tracking-tight">TSG & PLANNING DEPT</p>
+                </div>
+            </div>
+            
+            <div class="p-3">
+                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-1.5">MENU</p>
+                <nav class="space-y-1">
+                    <button id="btn-kpi" onclick="switchTab('kpi')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-[#ffcc00] text-slate-950 shadow-sm transition-all duration-150">
+                        <div class="flex items-center space-x-2.5">
+                            <i class="fa-solid fa-chart-bar text-xs opacity-90"></i>
+                            <span>Compliance Overview</span>
+                        </div>
+                        <span id="header-week-indicator" class="text-[9px] bg-slate-950/10 px-1.5 py-0.5 rounded font-mono">W23</span>
+                    </button>
+                    <button id="btn-input-form" onclick="switchTab('input-form')" class="w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-[#23342b] hover:text-white transition-all duration-150">
+                        <i class="fa-solid fa-square-plus text-xs mr-2.5 opacity-70"></i>
+                        <span>Data Input</span>
+                    </button>
+                </nav>
+            </div>
 
-    toggleRemarksFieldVisibility(item.status);
-    document.getElementById('edit-modal').classList.remove('hidden');
-}
+            <div class="p-3 border-t border-emerald-900/30 mt-1">
+                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider px-2 mb-2">Operational Calendars</p>
+                <div class="px-2">
+                    <select id="sidebar-week-select" onchange="if(this.value) switchTab('week-'+this.value)" class="w-full bg-[#131e19] border border-emerald-900/60 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-[#ffcc00] transition">
+                        <option value="" disabled selected>Select Operational Week Plan...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-function handleEditFormSubmit(event) {
-    event.preventDefault();
-    const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
-    if (!targetIdValue) { alert("Missing row ID mapping index."); return; }
+        <div class="p-3 bg-[#121c17] border-t border-emerald-900/40 text-[10px] text-slate-400 flex items-center justify-between font-medium">
+            <div class="flex items-center space-x-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="tracking-tight text-slate-300">Cloud Sync Active</span>
+            </div>
+            <span class="font-mono text-[9px] text-slate-500">v2.3.0</span>
+        </div>
+    </aside>
 
-    const selectedStatus = document.getElementById('edit-status').value;
-    const todayStamp = new Date().toISOString().split('T')[0];
-    
-    // Retain old values if they exist, or set them based on status changes
-    let doneDateValue = document.getElementById('edit-done-date').value;
-    let carryOverDateValue = document.getElementById('edit-carry-date').value;
+    <main class="flex-1 flex flex-col overflow-hidden bg-[#f4f6f5]">
+        <header class="bg-white border-b border-slate-200/80 h-11 flex-shrink-0 flex items-center justify-between px-6 shadow-sm z-10">
+            <div class="flex items-center space-x-3">
+                <h2 id="view-header-title" class="font-bold text-slate-800 tracking-tight text-sm">Compliance Overview Metrics</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-[10px] font-medium text-slate-600">
+                    <span class="text-slate-400 mr-1.5 font-normal">Active Server Target:</span>
+                    <span class="font-mono text-slate-800 bg-slate-200/50 px-1 py-0.5 rounded text-[9px]">SheetDB API Endpoints</span>
+                </div>
+            </div>
+        </header>
 
-    if (selectedStatus === 'DONE') {
-        doneDateValue = doneDateValue || todayStamp; 
-        carryOverDateValue = ""; // clear out if it's finally finished
-    } else if (selectedStatus === 'NOT DONE') {
-        carryOverDateValue = carryOverDateValue || todayStamp;
-        doneDateValue = ""; // clear out since it's incomplete
-    } else {
-        doneDateValue = "";
-        carryOverDateValue = "";
-    }
+        <div class="flex-1 overflow-y-auto p-6 space-y-5">
+            <div id="panel-kpi" class="space-y-5">
+                <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm no-print">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Performance Scorecard Filtering</h3>
+                        <p class="text-slate-500 text-[10px] mt-0.5">Isolate compliance metric parameters by designated operational time horizons</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button id="print-action-btn" onclick="window.print()" class="bg-white border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 flex items-center space-x-1.5 shadow-sm transition">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i>
+                            <span>Export Executive Report</span>
+                        </button>
+                        <div>
+                            <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Filter Level</label>
+                            <select id="kpi-type-select" onchange="toggleKPITimeframeInputs()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm">
+                                <option value="weekly">Weekly Plan Perspective</option>
+                                <option value="monthly">Monthly Aggregate Summary</option>
+                                <option value="ytd">Year-to-Date (Overall Accomplishment)</option>
+                            </select>
+                        </div>
+                        <div id="kpi-week-wrapper">
+                            <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Select Target Week</label>
+                            <select id="kpi-week-select" onchange="renderKPITable()" class="w-48 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm"></select>
+                        </div>
+                        <div id="kpi-month-wrapper" class="hidden">
+                            <label class="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Select Target Month</label>
+                            <select id="kpi-month-select" onchange="renderKPITable()" class="w-48 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-sm">
+                                <option value="Jan">January (W1 - W4)</option>
+                                <option value="Feb">February (W5 - W8)</option>
+                                <option value="Mar">March (W9 - W13)</option>
+                                <option value="Apr">April (W14 - W17)</option>
+                                <option value="May">May (W18 - W22)</option>
+                                <option value="Jun" selected>June (W23 - W26)</option>
+                                <option value="Jul">July (W27 - W31)</option>
+                                <option value="Aug">August (W32 - W35)</option>
+                                <option value="Sep">September (W36 - W39)</option>
+                                <option value="Oct">October (W40 - W44)</option>
+                                <option value="Nov">November (W45 - W48)</option>
+                                <option value="Dec">December (W49 - W53)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
-    const updatedData = {
-        "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
-        "Type": document.getElementById('edit-type').value,
-        "Assigned Planner": document.getElementById('edit-planner').value,
-        "Current Status": selectedStatus,
-        "Activity Description": document.getElementById('edit-activity').value,
-        "Target Date": document.getElementById('edit-date').value,
-        "Duration": document.getElementById('edit-duration').value,
-        "Location": document.getElementById('edit-loc').value,
-        "Parts Status": document.getElementById('edit-info').value,
-        "DONE DATE": doneDateValue,
-        "Carry-over date": carryOverDateValue,
-        "REASON FOR CARRY OVER": document.getElementById('edit-remarks').value
-    };
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between print-card">
+                        <div>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Planned Work Tasks</p>
+                            <h4 id="stat-total" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0</h4>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 no-print"><i class="fa-solid fa-list-check text-sm"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between print-card">
+                        <div>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Completed</p>
+                            <h4 id="stat-actual" class="text-2xl font-black text-emerald-600 mt-1 tracking-tight">0</h4>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 no-print"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex items-center justify-between print-card">
+                        <div>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Performance Rating</p>
+                            <h4 id="stat-rate" class="text-2xl font-black text-slate-800 mt-1 tracking-tight">0%</h4>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 no-print"><i class="fa-solid fa-gauge-high text-sm"></i></div>
+                    </div>
+                </div>
 
-    fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: updatedData })
-    })
-    .then(res => {
-        if(!res.ok) throw new Error();
-        closeEditModal(); 
-        loadDatabaseFromCloud();
-    })
-    .catch(() => alert("Error saving data changes."));
-}
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden print-card">
+                    <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                        <span id="kpi-table-week-indicator" class="font-bold text-slate-800 tracking-tight">Week Scorecard Metrics</span>
+                        <div class="flex items-center space-x-3 text-[9px]">
+                            <div class="flex items-center space-x-1.5 no-print">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-slate-500">High (≥80%)</span>
+                                <span class="w-2 h-2 rounded-full bg-amber-500 ml-1"></span><span class="text-slate-500">Target (50-79%)</span>
+                                <span class="w-2 h-2 rounded-full bg-rose-500 ml-1"></span><span class="text-slate-500">Lagging (&lt;50%)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="py-2.5 px-6">Assigned Planner</th>
+                                <th class="py-2.5 px-4">Area Segment</th>
+                                <th class="py-2.5 px-4 text-center border-l border-slate-200/60 bg-indigo-50/20">PM Plan (Done)</th>
+                                <th class="py-2.5 px-4 text-center bg-indigo-50/20">PM %</th>
+                                <th class="py-2.5 px-4 text-center border-l border-slate-200/60 bg-orange-50/20">CM Plan (Done)</th>
+                                <th class="py-2.5 px-4 text-center bg-orange-50/20">CM %</th>
+                                <th class="py-2.5 px-6 border-l border-slate-200 font-black text-slate-600 text-center bg-slate-100/40">Total Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kpi-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-input-form" class="hidden grid grid-cols-3 gap-6 items-start">
+                <form id="task-entry-form" onsubmit="handleFormSubmit(event)" class="col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                    <div class="border-b border-slate-100 pb-2 mb-1">
+                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Insert Maintenance Record Row</h3>
+                        <p class="text-slate-400 text-[10px]">Populates new entry rows straight inside your cloud spreadsheet database.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Target Week</label>
+                            <input type="number" id="form-week" required min="1" max="53" value="23" class="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-1.5 font-bold text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Equipment No</label>
+                            <input type="text" id="form-equip" required placeholder="e.g. CR-08" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-bold uppercase text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Planner</label>
+                            <select id="form-planner" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                                <option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Scope Classification</label>
+                            <select id="form-type" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                                <option value="PM">PM (Preventive)</option><option value="CM">CM (Corrective)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Activity Work Description</label>
+                        <textarea id="form-activity" required rows="2" placeholder="Describe the active scope details, repair assembly requirements, structural items..." class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Target Date</label>
+                            <input type="text" id="form-date" placeholder="e.g. JUNE 6-11" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Duration</label>
+                            <input type="text" id="form-duration" placeholder="e.g. 5 HOURS" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Parts Status</label>
+                            <input type="text" id="form-info" placeholder="e.g. ARRIVED MATERIAL" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Operational Location</label>
+                            <input type="text" id="form-loc" placeholder="e.g. GEM WORKSHOP" class="w-full border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 items-end pt-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Initial Status State</label>
+                            <select id="form-status" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 font-bold text-slate-700 focus:outline-none focus:border-emerald-600 transition">
+                                <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-slate-800 transition-all active:scale-98 flex items-center justify-center space-x-2 h-[34px]">
+                            <i class="fa-solid fa-cloud-arrow-up text-[11px] text-emerald-400"></i>
+                            <span>SAVE</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                    <div class="border-b border-slate-100 pb-2">
+                        <h3 class="font-bold text-slate-800 text-sm tracking-tight">Bulk CSV Batch Importer</h3>
+                        <p class="text-slate-400 text-[10px]">Parse traditional planner files instantly into Google Sheets rows.</p>
+                    </div>
+                    <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center bg-slate-50/50 hover:bg-slate-50 transition relative">
+                        <input type="file" accept=".csv" onchange="importCSVFile(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+                        <div class="text-slate-400 space-y-1">
+                            <i class="fa-solid fa-file-csv text-2xl text-slate-300"></i>
+                            <p class="text-[10px] font-bold text-slate-600">Click to locate spreadsheet CSV</p>
+                            <p class="text-[9px] text-slate-400">Accepts standard layout matrices</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-schedules" class="hidden space-y-4">
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-3 flex-1">
+                        <div class="w-48 relative">
+                            <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Search equipment / description..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1 text-[11px] font-medium text-slate-700 focus:outline-none focus:border-emerald-600 transition shadow-inner">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+                        </div>
+                        <select id="filter-planner" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Planners</option><option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option></select>
+                        <select id="filter-type" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Scopes</option><option value="PM">PM Only</option><option value="CM">CM Only</option></select>
+                        <select id="filter-status" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Status States</option><option value="DONE">Completed Only</option><option value="NOT DONE">Incomplete Only</option></select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="carryOverNotDone()" class="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm transition-all active:scale-95 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-forward-fast text-amber-500"></i>
+                            <span>Carry Over "NOT DONE"</span>
+                        </button>
+                        <select id="schedule-week-select" onchange="switchTab('week-'+this.value)" class="bg-slate-900 text-white font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm focus:outline-none border-none cursor-pointer"></select>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-2.5 px-3 text-center w-10 whitespace-nowrap">Idx</th>
+                                    <th class="py-2.5 px-3 whitespace-nowrap">Equipment No</th>
+                                    <th class="py-2.5 px-3 whitespace-nowrap">Planner</th>
+                                    <th class="py-2.5 px-2 text-center whitespace-nowrap">Type</th>
+                                    <th class="py-2.5 px-4 min-w-[200px] max-w-xs">Activity Description</th>
+                                    <th class="py-2.5 px-3 whitespace-nowrap">Target Date</th>
+                                    <th class="py-2.5 px-2 whitespace-nowrap">Duration</th>
+                                    <th class="py-2.5 px-3 min-w-[120px] max-w-[180px]">Parts / Info Status</th>
+                                    <th class="py-2.5 px-3 whitespace-nowrap">Location</th>
+                                    <th class="py-2.5 px-3 text-center whitespace-nowrap">Current Status</th>
+                                    <th class="py-2.5 px-2 text-center w-16 whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table-body" class="divide-y divide-slate-100 text-[11px]"></tbody>
+                        </table>
+                    </div>
+                    <div id="table-empty-state" class="hidden p-8 text-center space-y-1 bg-slate-50/50">
+                        <i class="fa-solid fa-folder-open text-xl text-slate-300"></i>
+                        <p class="text-slate-500 font-bold text-[11px]">No matching operational database records detected</p>
+                        <p class="text-slate-400 text-[9px]">Check filters or add records via data panel forms</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden">
+            <div class="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-slate-800">
+                    <i class="fa-solid fa-pen-to-square text-xs text-blue-500"></i>
+                    <h3 class="font-black tracking-tight text-xs uppercase">Modify Row Entry Parameters</h3>
+                </div>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+            </div>
+            <form id="edit-task-form" onsubmit="handleEditFormSubmit(event)" class="p-5 space-y-4">
+                <input type="hidden" id="edit-week">
+                <input type="hidden" id="edit-no">
+                <input type="hidden" id="edit-row-id">
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Equipment Code</label>
+                        <input type="text" id="edit-equip" required class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 uppercase focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Assigned Planner</label>
+                        <select id="edit-planner" required class="w-full border border-slate-200 bg-white rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none">
+                            <option>PHILIP</option><option>LEO</option><option>VINCENT</option><option>GLENBERTH</option><option>ROICE</option><option>DIONAH</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Classification Type</label>
+                        <select id="edit-type" required class="w-full border border-slate-200 bg-white rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none">
+                            <option value="PM">PM (Preventive)</option><option value="CM">CM (Corrective)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Work Activity Scope Description</label>
+                    <textarea id="edit-activity" required rows="2" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Target Schedule Window</label>
+                        <input type="text" id="edit-date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Duration Metrics</label>
+                        <input type="text" id="edit-duration" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Operational Location</label>
+                        <input type="text" id="edit-loc" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Parts Status / Remarks</label>
+                        <input type="text" id="edit-info" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Execution Status State</label>
+                    <select id="edit-status" onchange="toggleRemarksFieldVisibility(this.value)" required class="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none">
+                        <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Done Date</label>
+                        <input type="text" id="edit-done-date" readonly class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-500 font-mono bg-slate-50 focus:outline-none" placeholder="Auto-stamped on DONE">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Carry-Over Date</label>
+                        <input type="text" id="edit-carry-date" readonly class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-500 font-mono bg-slate-50 focus:outline-none" placeholder="Auto-stamped on NOT DONE">
+                    </div>
+                </div>
+                
+                <div id="remarks-field-wrapper" class="p-2.5 bg-rose-50/70 border border-rose-100 rounded-lg transition-all duration-200">
+                    <label class="block text-[9px] font-bold text-rose-700 uppercase mb-1 flex items-center justify-between">
+                        <span>Reason for Carry Over / Delay RCA</span>
+                        <span class="text-[8px] text-rose-400 lowercase font-normal">(Required if item isn't complete)</span>
+                    </label>
+                    <textarea id="edit-remarks" rows="2" placeholder="e.g. Awaiting specialized cylinder seals / Crew tied up at regional yard..." class="w-full border border-rose-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:border-rose-500 bg-white"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeEditModal()" class="border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold px-4 py-1.5 rounded-lg text-[11px] transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white font-bold px-4 py-1.5 rounded-lg text-[11px] hover:bg-blue-700 shadow transition">Commit Updates</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/p428lre6grrmb';
+
+        let activeTab = 'kpi';
+        let currentlySelectedWeek = '23';
+        let database = { schedules: {} };
+
+        const MONTH_WEEK_MAPPINGS = {
+            Jan: [1,2,3,4], Feb: [5,6,7,8], Mar: [9,10,11,12,13],
+            Apr: [14,15,16,17], May: [18,19,20,21,22], Jun: [23,24,25,26],
+            Jul: [27,28,29,30,31], Aug: [32,33,34,35], Sep: [36,37,38,39],
+            Oct: [40,41,42,43,44], Nov: [45,46,47,48], Dec: [49,50,51,52,53]
+        };
+
+        function getPlannerArea(pName) {
+            if (pName === "PHILIP") return "PMS SCOPE";
+            if (pName === "LEO") return "GEM & LOS AMIGOS";
+            if (pName === "VINCENT") return "REG XIII, SINUDA";
+            if (pName === "GLENBERTH") return "REGION XI YARDS";
+            if (pName === "ROICE") return "CRANES & SAMAL";
+            return "TYRES, TRACTORS";
+        }
+
+        function getWeekDateRange(weekStr) {
+            const weekNum = parseInt(weekStr);
+            if (isNaN(weekNum)) return "";
+            const refDate = new Date(2026, 5, 13);
+            const daysOffset = (weekNum - 24) * 7;
+            const startDate = new Date(refDate);
+            startDate.setDate(refDate.getDate() + daysOffset);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            const options = { month: 'short', day: 'numeric' };
+            return `(${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)})`;
+        }
+
+        function toggleRemarksFieldVisibility(statusValue) {
+            const wrapper = document.getElementById('remarks-field-wrapper');
+            if (statusValue === 'DONE') {
+                wrapper.className = "p-2.5 bg-slate-50 border border-slate-200 rounded-lg opacity-60 transition-all";
+            } else {
+                wrapper.className = "p-2.5 bg-rose-50/70 border border-rose-100 rounded-lg transition-all duration-200";
+            }
+        }
+
+        function toggleKPITimeframeInputs() {
+            const viewType = document.getElementById('kpi-type-select').value;
+            document.getElementById('kpi-week-wrapper').classList.toggle('hidden', viewType !== 'weekly');
+            document.getElementById('kpi-month-wrapper').classList.toggle('hidden', viewType !== 'monthly');
+            renderKPITable();
+        }
+
+        function loadDatabaseFromCloud() {
+            fetch(SHEETDB_API_URL)
+            .then(response => response.json())
+            .then(data => {
+                database.schedules = {};
+                if (!Array.isArray(data)) return;
+
+                data.forEach((row) => {
+                    const w = row["Week"] ? row["Week"].toString().trim() : "23";
+                    if (!database.schedules[w]) database.schedules[w] = [];
+                    
+                    database.schedules[w].push({
+                        no: database.schedules[w].length + 1,
+                        id: row["ID"] || "",
+                        equip: row["Equipment No"] || "",
+                        planner: row["Assigned Planner"] || "",
+                        type: row["Type"] || "CM",
+                        activity: row["Activity Description"] || "",
+                        date: row["Target Date"] || "",
+                        duration: row["Duration"] || "",
+                        info: row["Parts Status"] || "",
+                        loc: row["Location"] || "",
+                        status: row["Current Status"] || "FOR SCHEDULE",
+                        doneDate: row["DONE DATE"] || "",
+                        carryOverDate: row["Carry-over date"] || "",
+                        remarks: row["REASON FOR CARRY OVER"] || row["Remarks"] || ""
+                    });
+                });
+
+                const allWeeks = Object.keys(database.schedules);
+                if (allWeeks.length === 0) {
+                    allWeeks.push("23");
+                    database.schedules["23"] = [];
+                }
+                
+                syncInterfaceControls();
+                if (activeTab === 'kpi') renderKPITable();
+                else if (activeTab.startsWith('week-')) applyFilters();
+            })
+            .catch(err => console.error("Cloud synchronization engine error:", err));
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const wNum = document.getElementById('form-week').value.toString().trim();
+            const uniqueRowId = "ID-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+
+            const payload = {
+                "ID": uniqueRowId, "Week": wNum,
+                "Equipment No": document.getElementById('form-equip').value.toUpperCase(),
+                "Assigned Planner": document.getElementById('form-planner').value,
+                "Type": document.getElementById('form-type').value,
+                "Activity Description": document.getElementById('form-activity').value,
+                "Target Date": document.getElementById('form-date').value || "UNSCHEDULED",
+                "Duration": document.getElementById('form-duration').value || "--",
+                "Parts Status": document.getElementById('form-info').value || "NONE",
+                "Location": document.getElementById('form-loc').value || "MAIN HQ",
+                "Current Status": document.getElementById('form-status').value,
+                "DONE DATE": "",
+                "Carry-over date": "",
+                "REASON FOR CARRY OVER": ""
+            };
+
+            fetch(SHEETDB_API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: [payload] })
+            })
+            .then(() => {
+                document.getElementById('task-entry-form').reset();
+                currentlySelectedWeek = wNum;
+                switchTab(`week-${wNum}`);
+                loadDatabaseFromCloud();
+            });
+        }
+
+        function handleEditFormSubmit(event) {
+            event.preventDefault();
+            const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
+            if (!targetIdValue) { alert("Missing standard Row unique database index ID column."); return; }
+
+            const selectedStatus = document.getElementById('edit-status').value;
+            const todayStamp = new Date().toISOString().split('T')[0];
+            
+            let doneDateValue = document.getElementById('edit-done-date').value;
+            let carryOverDateValue = document.getElementById('edit-carry-date').value;
+
+            if (selectedStatus === 'DONE') {
+                doneDateValue = doneDateValue || todayStamp;
+                carryOverDateValue = "";
+            } else if (selectedStatus === 'NOT DONE') {
+                carryOverDateValue = carryOverDateValue || todayStamp;
+                doneDateValue = "";
+            } else {
+                doneDateValue = "";
+                carryOverDateValue = "";
+            }
+
+            const updatedData = {
+                "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
+                "Type": document.getElementById('edit-type').value,
+                "Assigned Planner": document.getElementById('edit-planner').value,
+                "Current Status": selectedStatus,
+                "Activity Description": document.getElementById('edit-activity').value,
+                "Target Date": document.getElementById('edit-date').value,
+                "Duration": document.getElementById('edit-duration').value,
+                "Location": document.getElementById('edit-loc').value,
+                "Parts Status": document.getElementById('edit-info').value,
+                "DONE DATE": doneDateValue,
+                "Carry-over date": carryOverDateValue,
+                "REASON FOR CARRY OVER": document.getElementById('edit-remarks').value
+            };
+
+            fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: updatedData })
+            })
+            .then(() => { closeEditModal(); loadDatabaseFromCloud(); });
+        }
+
+        function deleteTask(weekStr, taskNo) {
+            const taskList = database.schedules[weekStr] || [];
+            const item = taskList.find(t => t.no === taskNo);
+            if (!item || !item.id) return;
+
+            if (!confirm(`Permanently drop record target for ${item.equip}?`)) return;
+            fetch(`${SHEETDB_API_URL}/ID/${encodeURIComponent(item.id)}`, { method: 'DELETE' })
+            .then(() => loadDatabaseFromCloud());
+        }
+
+        function importCSVFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+                let detectedWeek = "24";
+                const fileNameMatch = file.name.match(/week\s*(\d+)/i);
+                if (fileNameMatch) detectedWeek = fileNameMatch[1];
+
+                let currentPlanner = "PHILIP", payloads = [];
+                lines.forEach((row, rIndex) => {
+                    if (row.length < 3) return;
+                    const cleanRow = row.filter(c => c !== "");
+                    if (cleanRow.length === 1 && ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"].includes(cleanRow[0])) {
+                        currentPlanner = cleanRow[0]; return;
+                    }
+                    if (/^\d+$/.test(cleanRow[0]) || /^\d+$/.test(row[1])) {
+                        const sIdx = row[1] && /^\d+$/.test(row[1]) ? 1 : 0;
+                        let type = "CM", act = row[sIdx + 2] || "", offset = 0;
+                        if (["PM", "CM"].includes(act.toUpperCase())) { type = act.toUpperCase(); act = row[sIdx + 3] || ""; offset = 1; }
+                        const stat = (row[sIdx + offset + 8] || "FOR SCHEDULE").toUpperCase();
+
+                        payloads.push({
+                            "ID": "ID-CSV-" + Date.now() + "-" + rIndex, "Week": detectedWeek,
+                            "Equipment No": (row[sIdx + 1] || "").toUpperCase(), "Assigned Planner": currentPlanner,
+                            "Type": type, "Activity Description": act, "Target Date": row[sIdx + offset + 3] || "",
+                            "Duration": row[sIdx + offset + 4] || "", "Parts Status": row[sIdx + offset + 6] || "",
+                            "Location": row[sIdx + offset + 7] || "", "Current Status": stat.includes("DONE") ? "DONE" : "NOT DONE", 
+                            "DONE DATE": stat.includes("DONE") ? new Date().toISOString().split('T')[0] : "",
+                            "Carry-over date": stat.includes("NOT DONE") ? new Date().toISOString().split('T')[0] : "",
+                            "REASON FOR CARRY OVER": ""
+                        });
+                    }
+                });
+
+                fetch(SHEETDB_API_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: payloads })
+                }).then(() => { alert("Import Complete."); loadDatabaseFromCloud(); });
+            };
+            reader.readAsText(file);
+        }
+
+        function carryOverNotDone() {
+            const currentWeekNum = parseInt(currentlySelectedWeek);
+            if (isNaN(currentWeekNum)) return;
+            const nextWeekStr = (currentWeekNum + 1).toString();
+            const notDoneTasks = (database.schedules[currentlySelectedWeek] || []).filter(t => t.status.trim().toUpperCase() === "NOT DONE");
+            
+            if (notDoneTasks.length === 0) { alert("No incomplete jobs found."); return; }
+            
+            const todayStamp = new Date().toISOString().split('T')[0];
+
+            const payloads = notDoneTasks.map((item, idx) => ({
+                "ID": "ID-CARRY-" + Date.now() + "-" + idx, "Week": nextWeekStr, "Equipment No": item.equip,
+                "Assigned Planner": item.planner, "Type": item.type, "Activity Description": `[PRIORITY] ${item.activity}`,
+                "Target Date": `Carried from W${currentlySelectedWeek}`, "Duration": item.duration,
+                "Parts Status": item.info, "Location": item.loc, "Current Status": "NOT DONE",
+                "DONE DATE": "", "Carry-over date": todayStamp, "REASON FOR CARRY OVER": item.remarks || "Automated carry-over roll process."
+            }));
+
+            fetch(SHEETDB_API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: payloads })
+            }).then(() => { currentlySelectedWeek = nextWeekStr; switchTab(`week-${nextWeekStr}`); loadDatabaseFromCloud(); });
+        }
+
+        function syncInterfaceControls() {
+            const sidebarSelect = document.getElementById('sidebar-week-select');
+            const kpiSelect = document.getElementById('kpi-week-select');
+            const scheduleSelect = document.getElementById('schedule-week-select');
+            
+            const allWeeks = new Set([...Object.keys(database.schedules), "22", "23", "24"]);
+            const sortedWeeks = Array.from(allWeeks).sort((a, b) => parseInt(a) - parseInt(b));
+
+            kpiSelect.innerHTML = '';
+            sortedWeeks.forEach(w => kpiSelect.innerHTML += `<option value="${w}">Week ${w} ${getWeekDateRange(w)}</option>`);
+            kpiSelect.value = currentlySelectedWeek;
+
+            if (scheduleSelect) {
+                scheduleSelect.innerHTML = '';
+                sortedWeeks.forEach(w => scheduleSelect.innerHTML += `<option value="${w}">Week ${w} Grid</option>`);
+                scheduleSelect.value = currentlySelectedWeek;
+            }
+
+            sidebarSelect.innerHTML = '<option value="" disabled selected>Select Operational Week Plan...</option>';
+            sortedWeeks.forEach(w => sidebarSelect.innerHTML += `<option value="${w}">Week ${w} Schedule</option>`);
+            if (activeTab.startsWith('week-')) sidebarSelect.value = activeTab.replace('week-', '');
+        }
+
+        function switchTab(target) {
+            activeTab = target;
+            document.getElementById('panel-kpi').classList.add('hidden');
+            document.getElementById('panel-input-form').classList.add('hidden');
+            document.getElementById('panel-schedules').classList.add('hidden');
+
+            if (target === 'kpi') {
+                document.getElementById('panel-kpi').classList.remove('hidden');
+                document.getElementById('view-header-title').innerText = "Compliance Overview Metrics";
+                renderKPITable();
+            } else if (target === 'input-form') {
+                document.getElementById('panel-input-form').classList.remove('hidden');
+                document.getElementById('view-header-title').innerText = "Data Input Matrix Entry";
+            } else if (target.startsWith('week-')) {
+                const weekNum = target.replace('week-', '');
+                currentlySelectedWeek = weekNum;
+                document.getElementById('panel-schedules').classList.remove('hidden');
+                document.getElementById('view-header-title').innerText = `Operational Schedule — Week ${weekNum}`;
+                applyFilters();
+            }
+            syncInterfaceControls();
+        }
+
+        function renderKPITable() {
+            const viewType = document.getElementById('kpi-type-select').value;
+            const targetWeek = document.getElementById('kpi-week-select').value;
+            const targetMonth = document.getElementById('kpi-month-select').value;
+            
+            let labelText = "", collectedTasks = [];
+
+            if (viewType === 'weekly') {
+                currentlySelectedWeek = targetWeek;
+                labelText = `Week ${targetWeek} Performance Scorecard ${getWeekDateRange(targetWeek)}`;
+                collectedTasks = database.schedules[targetWeek] || [];
+            } else if (viewType === 'monthly') {
+                labelText = `${document.getElementById('kpi-month-select').options[document.getElementById('kpi-month-select').selectedIndex].text} Aggregate Summary`;
+                (MONTH_WEEK_MAPPINGS[targetMonth] || []).forEach(w => { if (database.schedules[w]) collectedTasks = collectedTasks.concat(database.schedules[w]); });
+            } else if (viewType === 'ytd') {
+                labelText = "Overall Year-To-Date (YTD) Cumulative Accomplishment Metrics";
+                Object.keys(database.schedules).forEach(w => collectedTasks = collectedTasks.concat(database.schedules[w]));
+            }
+
+            document.getElementById('kpi-table-week-indicator').innerText = labelText;
+            document.getElementById('header-week-indicator').innerText = `Horizon: ${viewType.toUpperCase()}`;
+
+            const planners = ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"];
+            const tbody = document.getElementById('kpi-table-body');
+            tbody.innerHTML = '';
+
+            let grandTotalPlanned = 0, grandTotalActual = 0;
+
+            planners.forEach(pName => {
+                const plannerTasks = collectedTasks.filter(t => t.planner === pName);
+                const doneTasks = plannerTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
+                
+                const pmTasks = plannerTasks.filter(t => t.type === 'PM');
+                const pmDone = pmTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
+                const pmRate = pmTasks.length > 0 ? ((pmDone.length / pmTasks.length) * 100).toFixed(0) + "%" : "--";
+
+                const cmTasks = plannerTasks.filter(t => t.type === 'CM');
+                const cmDone = cmTasks.filter(t => t.status.trim().toUpperCase() === "DONE");
+                const cmRate = cmTasks.length > 0 ? ((cmDone.length / cmTasks.length) * 100).toFixed(0) + "%" : "--";
+
+                const overallRate = plannerTasks.length > 0 ? parseFloat(((doneTasks.length / plannerTasks.length) * 100).toFixed(1)) : 0.0;
+                grandTotalPlanned += plannerTasks.length; grandTotalActual += doneTasks.length;
+
+                const progressColor = overallRate >= 80 ? 'bg-emerald-500' : (overallRate >= 50 ? 'bg-amber-500' : 'bg-rose-500');
+                const rateTextColor = overallRate >= 80 ? 'text-emerald-700' : (overallRate >= 50 ? 'text-amber-700' : 'text-rose-700');
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/50 transition border-b border-slate-100">
+                        <td class="py-3 px-6 font-bold text-slate-900">${pName}</td>
+                        <td class="py-3 px-4 text-slate-400 font-medium text-[10px]">${getPlannerArea(pName)}</td>
+                        <td class="py-3 px-4 text-center border-l border-slate-100 font-semibold text-slate-700 bg-indigo-50/10">${pmTasks.length} <span class="text-emerald-600">(${pmDone.length})</span></td>
+                        <td class="py-3 px-4 text-center text-indigo-600 font-mono font-bold bg-indigo-50/10">${pmRate}</td>
+                        <td class="py-3 px-4 text-center border-l border-slate-100 font-semibold text-slate-700 bg-orange-50/10">${cmTasks.length} <span class="text-emerald-600">(${cmDone.length})</span></td>
+                        <td class="py-3 px-4 text-center text-orange-600 font-mono font-bold bg-orange-50/10">${cmRate}</td>
+                        <td class="py-3 px-6 border-l border-slate-200 bg-slate-50/50 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <div class="w-16 bg-slate-200 rounded-full h-1.5 no-print"><div class="${progressColor} h-1.5 rounded-full" style="width: ${overallRate}%"></div></div>
+                                <span class="font-black ${rateTextColor}">${overallRate}%</span>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+
+            document.getElementById('stat-total').innerText = grandTotalPlanned;
+            document.getElementById('stat-actual').innerText = grandTotalActual;
+            document.getElementById('stat-rate').innerText = grandTotalPlanned > 0 ? ((grandTotalActual / grandTotalPlanned) * 100).toFixed(1) + "%" : "0.0%";
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
+            const plannerVal = document.getElementById('filter-planner').value;
+            const typeVal = document.getElementById('filter-type').value;
+            const statusVal = document.getElementById('filter-status').value;
+
+            const activeDataset = database.schedules[currentlySelectedWeek] || [];
+            const tbody = document.getElementById('schedule-table-body');
+            tbody.innerHTML = '';
+
+            let count = 0;
+            activeDataset.forEach(item => {
+                if (plannerVal !== 'ALL' && item.planner !== plannerVal) return;
+                if (typeVal !== 'ALL' && item.type !== typeVal) return;
+                
+                const normStatus = item.status.toUpperCase().trim();
+                if (statusVal === 'DONE' && normStatus !== 'DONE') return;
+                if (statusVal === 'NOT DONE' && normStatus !== 'NOT DONE') return;
+                if (!item.equip.toLowerCase().includes(searchVal) && !item.activity.toLowerCase().includes(searchVal)) return;
+
+                count++;
+                let bStyle = "bg-slate-100 text-slate-700 border-slate-200"; 
+                if (normStatus === 'DONE') bStyle = "bg-emerald-50 text-emerald-700 border-emerald-200/60 font-bold";
+                else if (normStatus === 'NOT DONE') bStyle = "bg-rose-50 text-rose-700 border-rose-200/60 font-bold";
+                else if (normStatus === 'ONGOING') bStyle = "bg-amber-50 text-amber-700 border-amber-200/60 font-bold";
+                else if (normStatus === 'FOR SCHEDULE') bStyle = "bg-blue-50 text-blue-700 border-blue-200/60 font-bold";
+                
+                const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
+                
+                let rems = '';
+                if (normStatus === 'NOT DONE' || item.carryOverDate) {
+                    const dateLabel = item.carryOverDate ? `<span class="bg-rose-100 text-rose-800 font-mono px-1 rounded mr-1">Carried: ${item.carryOverDate}</span>` : '';
+                    rems = `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 border border-rose-100 whitespace-normal shadow-sm">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>${dateLabel}<span>RCA: ${item.remarks || 'No reason provided yet.'}</span>
+                            </div>`;
+                } else if (normStatus === 'DONE' && item.doneDate) {
+                    rems = `<div class="text-[9px] text-emerald-600 font-medium bg-emerald-50 px-1 rounded mt-0.5 border border-emerald-100 whitespace-normal shadow-sm">
+                                <i class="fa-solid fa-circle-check mr-1"></i><span class="font-mono">Finished on: ${item.doneDate}</span>
+                            </div>`;
+                } else if (item.remarks) {
+                    rems = `<div class="text-[9px] text-slate-600 font-medium bg-slate-50 px-1 rounded mt-0.5 border border-slate-200 whitespace-normal shadow-sm"><i class="fa-solid fa-comment-dots mr-1"></i><span>${item.remarks}</span></div>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
+                        <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[10px]">${count}</td>
+                        <td class="py-2.5 px-3 font-bold text-slate-900">${item.equip}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-700">${item.planner}</td>
+                        <td class="py-2.5 px-2 text-center"><span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${typeBadge}">${item.type}</span></td>
+                        <td class="py-2.5 px-4 text-slate-600 whitespace-normal break-words"><div>${item.activity}</div>${rems}</td>
+                        <td class="py-2.5 px-3 text-slate-500 font-medium">${item.date}</td>
+                        <td class="py-2.5 px-2 font-mono text-slate-500">${item.duration}</td>
+                        <td class="py-2.5 px-3 text-slate-500 font-medium whitespace-normal break-words">${item.info}</td>
+                        <td class="py-2.5 px-3 text-slate-500 font-semibold">${item.loc}</td>
+                        <td class="py-2.5 px-3 text-center">
+                            <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" class="px-2.5 py-1 text-[10px] rounded-full border shadow-sm uppercase font-bold transition active:scale-95 ${bStyle}">${item.status}</button>
+                        </td>
+                        <td class="py-2.5 px-2 text-center">
+                            <div class="flex items-center justify-center space-x-1">
+                                <button onclick="openEditModal('${currentlySelectedWeek}', ${item.no})" class="p-1 text-slate-400 hover:text-blue-600 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteTask('${currentlySelectedWeek}', ${item.no})" class="p-1 text-slate-400 hover:text-rose-600 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
+        }
+
+        function openEditModal(weekStr, taskNo) {
+            const taskList = database.schedules[weekStr] || [];
+            const item = taskList.find(t => t.no === taskNo);
+            if (!item) return;
+
+            document.getElementById('edit-week').value = weekStr; document.getElementById('edit-no').value = taskNo;
+            document.getElementById('edit-row-id').value = item.id || ""; document.getElementById('edit-equip').value = item.equip;
+            document.getElementById('edit-type').value = item.type; document.getElementById('edit-planner').value = item.planner;
+            document.getElementById('edit-status').value = item.status; document.getElementById('edit-activity').value = item.activity;
+            document.getElementById('edit-date').value = item.date; document.getElementById('edit-duration').value = item.duration;
+            document.getElementById('edit-loc').value = item.loc; document.getElementById('edit-info').value = item.info;
+            document.getElementById('edit-remarks').value = item.remarks || "";
+            
+            document.getElementById('edit-done-date').value = item.doneDate || "";
+            document.getElementById('edit-carry-date').value = item.carryOverDate || "";
+
+            toggleRemarksFieldVisibility(item.status);
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+        window.onload = function() { loadDatabaseFromCloud(); switchTab('kpi'); };
+    </script>
+</body>
+</html>
