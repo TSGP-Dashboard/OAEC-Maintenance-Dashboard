@@ -381,11 +381,11 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Done Date</label>
-                        <input type="text" id="edit-done-date" readonly class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-500 font-mono bg-slate-50 focus:outline-none" placeholder="Auto-stamped on DONE">
+                        <input type="text" id="edit-done-date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-mono bg-white focus:border-blue-500 focus:outline-none" placeholder="YYYY-MM-DD">
                     </div>
                     <div>
                         <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Carry-Over Date</label>
-                        <input type="text" id="edit-carry-date" readonly class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-500 font-mono bg-slate-50 focus:outline-none" placeholder="Auto-stamped on NOT DONE">
+                        <input type="text" id="edit-carry-date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-mono bg-white focus:border-blue-500 focus:outline-none" placeholder="YYYY-MM-DD">
                     </div>
                 </div>
                 
@@ -540,18 +540,15 @@
             const selectedStatus = document.getElementById('edit-status').value;
             const todayStamp = new Date().toISOString().split('T')[0];
             
-            let doneDateValue = document.getElementById('edit-done-date').value;
-            let carryOverDateValue = document.getElementById('edit-carry-date').value;
+            // Respect whatever value is typed in the form input inputs directly
+            let doneDateValue = document.getElementById('edit-done-date').value.trim();
+            let carryOverDateValue = document.getElementById('edit-carry-date').value.trim();
 
+            // Intelligent fallbacks: If field is blank, provide automated timestamp depending on selected state
             if (selectedStatus === 'DONE') {
                 doneDateValue = doneDateValue || todayStamp;
-                carryOverDateValue = "";
             } else if (selectedStatus === 'NOT DONE') {
                 carryOverDateValue = carryOverDateValue || todayStamp;
-                doneDateValue = "";
-            } else {
-                doneDateValue = "";
-                carryOverDateValue = "";
             }
 
             const updatedData = {
@@ -837,6 +834,7 @@
             document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
         }
 
+        // Populates the unlocked fields dynamically when you select a row to edit
         function openEditModal(weekStr, taskNo) {
             const taskList = database.schedules[weekStr] || [];
             const item = taskList.find(t => t.no === taskNo);
