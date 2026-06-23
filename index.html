@@ -68,7 +68,7 @@
                 <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 <span class="tracking-tight text-slate-300">Cloud Sync Active</span>
             </div>
-            <span class="font-mono text-[9px] text-slate-500">v2.3.0</span>
+            <span class="font-mono text-[9px] text-slate-500">v2.3.1</span>
         </div>
     </aside>
 
@@ -312,6 +312,7 @@
         </div>
     </main>
 
+    <!-- Modal Layout Matrix View Frame -->
     <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden">
             <div class="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
@@ -464,18 +465,21 @@
                     const w = row["Week"] ? row["Week"].toString().trim() : "23";
                     if (!database.schedules[w]) database.schedules[w] = [];
                     
+                    // Added flexible fallbacks in case headers are modified or truncated
+                    const rowStatus = row["Current Status"] || row["Current Stat"] || row["Status"] || "FOR SCHEDULE";
+
                     database.schedules[w].push({
                         no: database.schedules[w].length + 1,
                         id: row["ID"] || "",
-                        equip: row["Equipment No"] || "",
-                        planner: row["Assigned Planner"] || "",
+                        equip: row["Equipment No"] || row["Equipment"] || "",
+                        planner: row["Assigned Planner"] || row["Planner"] || "",
                         type: row["Type"] || "CM",
-                        activity: row["Activity Description"] || "",
+                        activity: row["Activity Description"] || row["Activity"] || "",
                         date: row["Target Date"] || "",
                         duration: row["Duration"] || "",
                         info: row["Parts Status"] || "",
                         loc: row["Location"] || "",
-                        status: row["Current Status"] || "FOR SCHEDULE",
+                        status: rowStatus,
                         doneDate: row["DONE DATE"] || "",
                         carryOverDate: row["Carry-over date"] || "",
                         remarks: row["REASON FOR CARRY OVER"] || row["Remarks"] || ""
