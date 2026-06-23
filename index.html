@@ -277,10 +277,6 @@
                         <select id="filter-status" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Status States</option><option value="DONE">Completed Only</option><option value="NOT DONE">Incomplete Only</option></select>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="carryOverNotDone()" class="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm transition-all active:scale-95 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-forward-fast text-amber-500"></i>
-                            <span>Carry Over "NOT DONE"</span>
-                        </button>
                         <select id="schedule-week-select" onchange="switchTab('week-'+this.value)" class="bg-slate-900 text-white font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm focus:outline-none border-none cursor-pointer"></select>
                     </div>
                 </div>
@@ -540,11 +536,9 @@
             const selectedStatus = document.getElementById('edit-status').value;
             const todayStamp = new Date().toISOString().split('T')[0];
             
-            // Respect whatever value is typed in the form input inputs directly
             let doneDateValue = document.getElementById('edit-done-date').value.trim();
             let carryOverDateValue = document.getElementById('edit-carry-date').value.trim();
 
-            // Intelligent fallbacks: If field is blank, provide automated timestamp depending on selected state
             if (selectedStatus === 'DONE') {
                 doneDateValue = doneDateValue || todayStamp;
             } else if (selectedStatus === 'NOT DONE') {
@@ -626,30 +620,6 @@
                 }).then(() => { alert("Import Complete."); loadDatabaseFromCloud(); });
             };
             reader.readAsText(file);
-        }
-
-        function carryOverNotDone() {
-            const currentWeekNum = parseInt(currentlySelectedWeek);
-            if (isNaN(currentWeekNum)) return;
-            const nextWeekStr = (currentWeekNum + 1).toString();
-            const notDoneTasks = (database.schedules[currentlySelectedWeek] || []).filter(t => t.status.trim().toUpperCase() === "NOT DONE");
-            
-            if (notDoneTasks.length === 0) { alert("No incomplete jobs found."); return; }
-            
-            const todayStamp = new Date().toISOString().split('T')[0];
-
-            const payloads = notDoneTasks.map((item, idx) => ({
-                "ID": "ID-CARRY-" + Date.now() + "-" + idx, "Week": nextWeekStr, "Equipment No": item.equip,
-                "Assigned Planner": item.planner, "Type": item.type, "Activity Description": `[PRIORITY] ${item.activity}`,
-                "Target Date": `Carried from W${currentlySelectedWeek}`, "Duration": item.duration,
-                "Parts Status": item.info, "Location": item.loc, "Current Status": "NOT DONE",
-                "DONE DATE": "", "Carry-over date": todayStamp, "REASON FOR CARRY OVER": item.remarks || "Automated carry-over roll process."
-            }));
-
-            fetch(SHEETDB_API_URL, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: payloads })
-            }).then(() => { currentlySelectedWeek = nextWeekStr; switchTab(`week-${nextWeekStr}`); loadDatabaseFromCloud(); });
         }
 
         function syncInterfaceControls() {
@@ -834,7 +804,6 @@
             document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
         }
 
-        // Populates the unlocked fields dynamically when you select a row to edit
         function openEditModal(weekStr, taskNo) {
             const taskList = database.schedules[weekStr] || [];
             const item = taskList.find(t => t.no === taskNo);
