@@ -17,7 +17,7 @@
         @media print {
             body { background: white !important; text-color: black !important; font-size: 10px !important; }
             aside, header, #print-action-btn, .no-print { display: none !important; }
-            main { padding: 0 !important; overflow: visible !important; height: auto !important; }
+            main { p: 0 !important; overflow: visible !important; height: auto !important; }
             .print-card { border: 1px solid #cbd5e1 !important; box-shadow: none !important; margin-bottom: 15px !important; }
         }
     </style>
@@ -242,7 +242,7 @@
                                 <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
                             </select>
                         </div>
-                        <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center space-x-2 h-[34px]">
+                        <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-slate-800 transition-all active:scale-98 flex items-center justify-center space-x-2 h-[34px]">
                             <i class="fa-solid fa-cloud-arrow-up text-[11px] text-emerald-400"></i>
                             <span>SAVE</span>
                         </button>
@@ -277,6 +277,10 @@
                         <select id="filter-status" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 focus:outline-none"><option value="ALL">All Status States</option><option value="DONE">Completed Only</option><option value="NOT DONE">Incomplete Only</option></select>
                     </div>
                     <div class="flex items-center space-x-2">
+                        <button onclick="carryOverNotDone()" class="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm transition-all active:scale-95 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-forward-fast text-amber-500"></i>
+                            <span>Carry Over "NOT DONE"</span>
+                        </button>
                         <select id="schedule-week-select" onchange="switchTab('week-'+this.value)" class="bg-slate-900 text-white font-bold px-3 py-1 rounded-lg text-[10px] shadow-sm focus:outline-none border-none cursor-pointer"></select>
                     </div>
                 </div>
@@ -373,10 +377,21 @@
                         <option>NOT DONE</option><option>ONGOING</option><option>DONE</option><option>FOR SCHEDULE</option>
                     </select>
                 </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Done Date</label>
+                        <input type="text" id="edit-done-date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-mono bg-white focus:border-blue-500 focus:outline-none" placeholder="YYYY-MM-DD">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Carry-Over Date</label>
+                        <input type="text" id="edit-carry-date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-mono bg-white focus:border-blue-500 focus:outline-none" placeholder="YYYY-MM-DD">
+                    </div>
+                </div>
                 
                 <div id="remarks-field-wrapper" class="p-2.5 bg-rose-50/70 border border-rose-100 rounded-lg transition-all duration-200">
                     <label class="block text-[9px] font-bold text-rose-700 uppercase mb-1 flex items-center justify-between">
-                        <span>Remarks / Reason for Carry Over</span>
+                        <span>Reason for Carry Over / Delay RCA</span>
                         <span class="text-[8px] text-rose-400 lowercase font-normal">(Required if item isn't complete)</span>
                     </label>
                     <textarea id="edit-remarks" rows="2" placeholder="e.g. Awaiting specialized cylinder seals / Crew tied up at regional yard..." class="w-full border border-rose-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:border-rose-500 bg-white"></textarea>
@@ -465,7 +480,9 @@
                         info: row["Parts Status"] || "",
                         loc: row["Location"] || "",
                         status: row["Current Status"] || "FOR SCHEDULE",
-                        remarks: row["Remarks"] || ""
+                        doneDate: row["DONE DATE"] || "",
+                        carryOverDate: row["Carry-over date"] || "",
+                        remarks: row["REASON FOR CARRY OVER"] || row["Remarks"] || ""
                     });
                 });
 
@@ -497,7 +514,10 @@
                 "Duration": document.getElementById('form-duration').value || "--",
                 "Parts Status": document.getElementById('form-info').value || "NONE",
                 "Location": document.getElementById('form-loc').value || "MAIN HQ",
-                "Current Status": document.getElementById('form-status').value, "Remarks": ""
+                "Current Status": document.getElementById('form-status').value,
+                "DONE DATE": "",
+                "Carry-over date": "",
+                "REASON FOR CARRY OVER": ""
             };
 
             fetch(SHEETDB_API_URL, {
@@ -517,17 +537,33 @@
             const targetIdValue = encodeURIComponent(document.getElementById('edit-row-id').value);
             if (!targetIdValue) { alert("Missing standard Row unique database index ID column."); return; }
 
+            const selectedStatus = document.getElementById('edit-status').value;
+            const todayStamp = new Date().toISOString().split('T')[0];
+            
+            // Respect whatever value is typed in the form input inputs directly
+            let doneDateValue = document.getElementById('edit-done-date').value.trim();
+            let carryOverDateValue = document.getElementById('edit-carry-date').value.trim();
+
+            // Intelligent fallbacks: If field is blank, provide automated timestamp depending on selected state
+            if (selectedStatus === 'DONE') {
+                doneDateValue = doneDateValue || todayStamp;
+            } else if (selectedStatus === 'NOT DONE') {
+                carryOverDateValue = carryOverDateValue || todayStamp;
+            }
+
             const updatedData = {
                 "Equipment No": document.getElementById('edit-equip').value.toUpperCase(),
                 "Type": document.getElementById('edit-type').value,
                 "Assigned Planner": document.getElementById('edit-planner').value,
-                "Current Status": document.getElementById('edit-status').value,
+                "Current Status": selectedStatus,
                 "Activity Description": document.getElementById('edit-activity').value,
                 "Target Date": document.getElementById('edit-date').value,
                 "Duration": document.getElementById('edit-duration').value,
                 "Location": document.getElementById('edit-loc').value,
                 "Parts Status": document.getElementById('edit-info').value,
-                "Remarks": document.getElementById('edit-remarks').value
+                "DONE DATE": doneDateValue,
+                "Carry-over date": carryOverDateValue,
+                "REASON FOR CARRY OVER": document.getElementById('edit-remarks').value
             };
 
             fetch(`${SHEETDB_API_URL}/ID/${targetIdValue}`, {
@@ -576,7 +612,10 @@
                             "Equipment No": (row[sIdx + 1] || "").toUpperCase(), "Assigned Planner": currentPlanner,
                             "Type": type, "Activity Description": act, "Target Date": row[sIdx + offset + 3] || "",
                             "Duration": row[sIdx + offset + 4] || "", "Parts Status": row[sIdx + offset + 6] || "",
-                            "Location": row[sIdx + offset + 7] || "", "Current Status": stat.includes("DONE") ? "DONE" : "NOT DONE", "Remarks": ""
+                            "Location": row[sIdx + offset + 7] || "", "Current Status": stat.includes("DONE") ? "DONE" : "NOT DONE", 
+                            "DONE DATE": stat.includes("DONE") ? new Date().toISOString().split('T')[0] : "",
+                            "Carry-over date": stat.includes("NOT DONE") ? new Date().toISOString().split('T')[0] : "",
+                            "REASON FOR CARRY OVER": ""
                         });
                     }
                 });
@@ -587,6 +626,30 @@
                 }).then(() => { alert("Import Complete."); loadDatabaseFromCloud(); });
             };
             reader.readAsText(file);
+        }
+
+        function carryOverNotDone() {
+            const currentWeekNum = parseInt(currentlySelectedWeek);
+            if (isNaN(currentWeekNum)) return;
+            const nextWeekStr = (currentWeekNum + 1).toString();
+            const notDoneTasks = (database.schedules[currentlySelectedWeek] || []).filter(t => t.status.trim().toUpperCase() === "NOT DONE");
+            
+            if (notDoneTasks.length === 0) { alert("No incomplete jobs found."); return; }
+            
+            const todayStamp = new Date().toISOString().split('T')[0];
+
+            const payloads = notDoneTasks.map((item, idx) => ({
+                "ID": "ID-CARRY-" + Date.now() + "-" + idx, "Week": nextWeekStr, "Equipment No": item.equip,
+                "Assigned Planner": item.planner, "Type": item.type, "Activity Description": `[PRIORITY] ${item.activity}`,
+                "Target Date": `Carried from W${currentlySelectedWeek}`, "Duration": item.duration,
+                "Parts Status": item.info, "Location": item.loc, "Current Status": "NOT DONE",
+                "DONE DATE": "", "Carry-over date": todayStamp, "REASON FOR CARRY OVER": item.remarks || "Automated carry-over roll process."
+            }));
+
+            fetch(SHEETDB_API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: payloads })
+            }).then(() => { currentlySelectedWeek = nextWeekStr; switchTab(`week-${nextWeekStr}`); loadDatabaseFromCloud(); });
         }
 
         function syncInterfaceControls() {
@@ -731,7 +794,20 @@
                 else if (normStatus === 'FOR SCHEDULE') bStyle = "bg-blue-50 text-blue-700 border-blue-200/60 font-bold";
                 
                 const typeBadge = item.type === 'PM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-orange-50 text-orange-700 border border-orange-100';
-                const rems = item.remarks ? `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 border border-rose-100 whitespace-normal shadow-sm"><i class="fa-solid fa-comment-dots mr-1"></i><span>${item.remarks}</span></div>` : '';
+                
+                let rems = '';
+                if (normStatus === 'NOT DONE' || item.carryOverDate) {
+                    const dateLabel = item.carryOverDate ? `<span class="bg-rose-100 text-rose-800 font-mono px-1 rounded mr-1">Carried: ${item.carryOverDate}</span>` : '';
+                    rems = `<div class="text-[9px] text-rose-600 font-medium bg-rose-50 px-1 rounded mt-0.5 border border-rose-100 whitespace-normal shadow-sm">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>${dateLabel}<span>RCA: ${item.remarks || 'No reason provided yet.'}</span>
+                            </div>`;
+                } else if (normStatus === 'DONE' && item.doneDate) {
+                    rems = `<div class="text-[9px] text-emerald-600 font-medium bg-emerald-50 px-1 rounded mt-0.5 border border-emerald-100 whitespace-normal shadow-sm">
+                                <i class="fa-solid fa-circle-check mr-1"></i><span class="font-mono">Finished on: ${item.doneDate}</span>
+                            </div>`;
+                } else if (item.remarks) {
+                    rems = `<div class="text-[9px] text-slate-600 font-medium bg-slate-50 px-1 rounded mt-0.5 border border-slate-200 whitespace-normal shadow-sm"><i class="fa-solid fa-comment-dots mr-1"></i><span>${item.remarks}</span></div>`;
+                }
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition">
@@ -758,6 +834,7 @@
             document.getElementById('table-empty-state').classList.toggle('hidden', count > 0);
         }
 
+        // Populates the unlocked fields dynamically when you select a row to edit
         function openEditModal(weekStr, taskNo) {
             const taskList = database.schedules[weekStr] || [];
             const item = taskList.find(t => t.no === taskNo);
@@ -770,6 +847,9 @@
             document.getElementById('edit-date').value = item.date; document.getElementById('edit-duration').value = item.duration;
             document.getElementById('edit-loc').value = item.loc; document.getElementById('edit-info').value = item.info;
             document.getElementById('edit-remarks').value = item.remarks || "";
+            
+            document.getElementById('edit-done-date').value = item.doneDate || "";
+            document.getElementById('edit-carry-date').value = item.carryOverDate || "";
 
             toggleRemarksFieldVisibility(item.status);
             document.getElementById('edit-modal').classList.remove('hidden');
