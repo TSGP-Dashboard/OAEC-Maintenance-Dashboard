@@ -450,22 +450,29 @@
                 if (!Array.isArray(data)) return;
 
                 data.forEach((row) => {
-                    const w = row["Week"] ? row["Week"].toString().trim() : "23";
+                    // Force the week value to a clean, lowercase-trimmed string regardless of type
+                    let w = "23";
+                    if (row["Week"] !== undefined && row["Week"] !== null) {
+                        w = row["Week"].toString().trim();
+                    } else if (row["week"] !== undefined && row["week"] !== null) {
+                        w = row["week"].toString().trim();
+                    }
+                    
                     if (!database.schedules[w]) database.schedules[w] = [];
                     
                     database.schedules[w].push({
                         no: database.schedules[w].length + 1,
-                        id: row["ID"] || "",
-                        equip: row["Equipment No"] || "",
-                        planner: row["Assigned Planner"] || "",
-                        type: row["Type"] || "CM",
-                        activity: row["Activity Description"] || "",
-                        date: row["Target Date"] || "",
-                        duration: row["Duration"] || "",
-                        info: row["Parts Status"] || "",
-                        loc: row["Location"] || "",
-                        status: row["Current Status"] || "FOR SCHEDULE",
-                        remarks: row["Remarks"] || ""
+                        id: row["ID"] || row["id"] || "",
+                        equip: row["Equipment No"] || row["equipment no"] || "",
+                        planner: row["Assigned Planner"] || row["assigned planner"] || "",
+                        type: row["Type"] || row["type"] || "CM",
+                        activity: row["Activity Description"] || row["activity description"] || "",
+                        date: row["Target Date"] || row["target date"] || "",
+                        duration: row["Duration"] || row["duration"] || "",
+                        info: row["Parts Status"] || row["parts status"] || "",
+                        loc: row["Location"] || row["location"] || "",
+                        status: row["Current Status"] || row["current status"] || "FOR SCHEDULE",
+                        remarks: row["Remarks"] || row["remarks"] || ""
                     });
                 });
 
