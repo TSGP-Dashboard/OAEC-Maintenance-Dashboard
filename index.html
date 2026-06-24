@@ -407,9 +407,10 @@
         function getPlannerArea(pName) {
             if (pName === "PHILIP") return "PMS SCOPE";
             if (pName === "LEO") return "GEM & LOS AMIGOS";
-            if (pName === "VINCENT") return "REG XIII, SINUDA";
+            if (pName === "VINCENT") return "REGION XIII, SINUDA";
             if (pName === "GLENBERTH") return "REGION XI YARDS";
             if (pName === "ROICE") return "CRANES & SAMAL";
+            if (pName === "JANE") return "REGION X";
             return "TYRES, TRACTORS";
         }
 
@@ -571,7 +572,7 @@
                 lines.forEach((row, rIndex) => {
                     if (row.length < 3) return;
                     const cleanRow = row.filter(c => c !== "");
-                    if (cleanRow.length === 1 && ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"].includes(cleanRow[0])) {
+                    if (cleanRow.length === 1 && ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "JANE", "DIONAH"].includes(cleanRow[0])) {
                         currentPlanner = cleanRow[0]; return;
                     }
                     if (/^\d+$/.test(cleanRow[0]) || /^\d+$/.test(row[1])) {
@@ -667,7 +668,7 @@
             document.getElementById('kpi-table-week-indicator').innerText = labelText;
             document.getElementById('header-week-indicator').innerText = `Horizon: ${viewType.toUpperCase()}`;
 
-            const planners = ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "DIONAH"];
+            const planners = ["PHILIP", "LEO", "VINCENT", "GLENBERTH", "ROICE", "JANE", "DIONAH"];
             const tbody = document.getElementById('kpi-table-body');
             tbody.innerHTML = '';
 
